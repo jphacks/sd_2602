@@ -1,0 +1,33 @@
+{
+  "name": "GroupPermission",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "line_group_id": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "allowed",
+        "revoked"
+      ]
+    },
+    "permission_version": {
+      "type": "string"
+    },
+    "granted_at": {
+      "type": "string"
+    },
+    "revoked_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_id",
+    "line_group_id",
+    "state"
+  ]
+}

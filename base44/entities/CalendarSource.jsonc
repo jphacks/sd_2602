@@ -1,0 +1,97 @@
+{
+  "name": "CalendarSource",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "source_revision": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "calendar_id": {
+      "type": "string"
+    },
+    "fetched_at": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date_exclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start_date",
+        "end_date_exclusive"
+      ]
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "timed",
+              "all_day"
+            ]
+          },
+          "provider_event_id": {
+            "type": "string"
+          },
+          "starts_at": {
+            "type": "string"
+          },
+          "ends_at": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date_exclusive": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "transparency": {
+            "type": "string"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "participation_status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      }
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_id",
+    "source_revision",
+    "range",
+    "events"
+  ]
+}

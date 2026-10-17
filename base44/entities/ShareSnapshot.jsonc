@@ -1,0 +1,141 @@
+{
+  "name": "ShareSnapshot",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "source_snapshot_id": {
+      "type": "string"
+    },
+    "permission_id": {
+      "type": "string"
+    },
+    "permission_version": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date_exclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start_date",
+        "end_date_exclusive"
+      ]
+    },
+    "daily_public": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "active_minutes": {
+            "type": "integer"
+          },
+          "busy_minutes": {
+            "type": "integer"
+          },
+          "busy_ratio": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "active_minutes",
+          "busy_minutes",
+          "busy_ratio"
+        ]
+      }
+    },
+    "hourly_public": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slot_start": {
+            "type": "string"
+          },
+          "active_minutes": {
+            "type": "integer"
+          },
+          "busy_minutes": {
+            "type": "integer"
+          },
+          "busy_ratio": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "slot_start",
+          "active_minutes",
+          "busy_minutes",
+          "busy_ratio"
+        ]
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "busy_ratio": {
+            "type": "number"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "busy_ratio",
+          "reasons"
+        ]
+      }
+    },
+    "token_hash": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "revoked_at": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_id",
+    "source_snapshot_id",
+    "token_hash",
+    "expires_at"
+  ]
+}

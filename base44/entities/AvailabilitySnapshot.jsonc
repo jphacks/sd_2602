@@ -1,0 +1,162 @@
+{
+  "name": "AvailabilitySnapshot",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "settings_version": {
+      "type": "string"
+    },
+    "edit_version": {
+      "type": "string"
+    },
+    "adjustment_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision"
+        ]
+      }
+    },
+    "calculation_version": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date_exclusive": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "start_date",
+        "end_date_exclusive"
+      ]
+    },
+    "daily": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "active_minutes": {
+            "type": "integer"
+          },
+          "busy_minutes": {
+            "type": "integer"
+          },
+          "busy_ratio": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "active_minutes",
+          "busy_minutes",
+          "busy_ratio"
+        ]
+      }
+    },
+    "hourly": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "slot_start": {
+            "type": "string"
+          },
+          "active_minutes": {
+            "type": "integer"
+          },
+          "busy_minutes": {
+            "type": "integer"
+          },
+          "busy_ratio": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "slot_start",
+          "active_minutes",
+          "busy_minutes",
+          "busy_ratio"
+        ]
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "busy_ratio": {
+            "type": "number"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "busy_ratio",
+          "reasons"
+        ]
+      }
+    },
+    "candidate_state": {
+      "type": "string",
+      "enum": [
+        "valid",
+        "empty",
+        "invalid"
+      ]
+    },
+    "schema_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_id",
+    "run_id",
+    "daily",
+    "candidates",
+    "candidate_state"
+  ]
+}

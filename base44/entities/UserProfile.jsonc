@@ -1,0 +1,83 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string",
+      "description": "\u6240\u6709\u8005\u306e\u6a19\u6e96User id"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "activity_windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_minute": {
+            "type": "integer"
+          },
+          "end_minute": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_minute",
+          "end_minute"
+        ]
+      }
+    },
+    "search_days": {
+      "type": "integer"
+    },
+    "excluded_dates": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "line_user_id": {
+      "type": "string"
+    },
+    "line_display_name": {
+      "type": "string"
+    },
+    "google_connection_ref": {
+      "type": "string",
+      "description": "\u63a5\u7d9a\u306e\u53c2\u7167\u3002\u30a2\u30af\u30bb\u30b9\u30c8\u30fc\u30af\u30f3\u7b49\u306e\u79d8\u5bc6\u306f\u4fdd\u5b58\u3057\u306a\u3044"
+    },
+    "google_status": {
+      "type": "string",
+      "enum": [
+        "unlinked",
+        "linked",
+        "auth_required"
+      ]
+    },
+    "settings_version": {
+      "type": "string"
+    },
+    "edit_version": {
+      "type": "string"
+    },
+    "latest_snapshot_id": {
+      "type": "string"
+    },
+    "current_run_id": {
+      "type": "string"
+    },
+    "candidate_state": {
+      "type": "string",
+      "enum": [
+        "valid",
+        "empty",
+        "invalid"
+      ]
+    }
+  },
+  "required": [
+    "owner_id",
+    "timezone"
+  ]
+}
