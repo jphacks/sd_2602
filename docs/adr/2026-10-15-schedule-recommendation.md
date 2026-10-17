@@ -8,6 +8,7 @@
 日程調整の手間で誘う意欲が薄れる問題に対し、本人の余裕を可視化して候補日を提案しやすくする。日単位の余裕は、具体的な時刻の一致や全参加者の空きを保証しない。
 
 ## 現行の決定
+- 2026-10-17範囲更新：Base44前提。初版は本人の芝・候補・LINE固定リンク共有に絞る。以下の4人比較・AI補正・画像等は後回し。時間帯編集・候補除外を追加し、[DB草案](../schedule-state-and-schema.md)と[実行ログ仕様](../schedule-operation-log-spec.md)へ整理した。7種類の項目・制御は提案で、実装保証ではない。
 - Webで日別の芝・1時間別詳細・設定・共有を提供する。Webの比較は1マスを本人込み最大4人に分割し、3人は3分割。
 - Google CalendarはEvents.listから必要項目を取得。予定名・本文は保存・公開しない。
 - 固定ロジックで多忙度を計算し、候補選出を独立させる。AI補正は比較可能とし、失敗時は計算候補へ代替。
@@ -34,4 +35,4 @@
 - [内部設計](../schedule-internal-flow.md)
 - [LINE連携仕様](../schedule-line-spec.md)
 - [状態とDB設計](../schedule-state-and-schema.md)
-- [調整前の意思決定記録](../archive/2026-10-17-before-design-cleanup/adr/2026-10-15-schedule-recommendation.md)：ネイティブ・辞書を検討した経緯を含む。旧方針は現行の要件ではない。
+- [調整前の意思決定記録](../archive/2026-10-17-before-base44-redesign/adr/2026-10-15-schedule-recommendation.md)：ネイティブ・辞書を検討した経緯を含む。旧方針は現行の要件ではない。

@@ -1,170 +1,139 @@
-# 状態遷移とDB論理スキーマ
+# 状態遷移とDB草案：Base44最小構成
 
-2026-10-17更新。内部設計草案。PostgreSQLを前提とする提案であり、DB製品・DDLは未確定。既存仕様に基づくが、この文書の新規設計はユーザー承認前。
+更新日：2026-10-17。Base44採用を前提に、本人の芝・候補・LINE共有に絞った設計草案。エンティティ名・項目・制御は本書の提案であり、スキーマ適用・接続検証済みではない。
+旧PostgreSQL草案は[アーカイブ](archive/2026-10-17-before-base44-redesign/schedule-state-and-schema.md)、検証版の保存説明は[別資料](schedule-local-prototype-storage.md)に残す。
 
-## 設計方針
-- 更新処理、表示可能なデータ、候補の有効性、共有リンク、LINE本人連携、グループ別共有許可を別状態として管理する。
-- 計算結果は更新単位のスナップショット。未完成版は公開せず、完了時に参照先をトランザクションで切り替える。
-- 外部API呼び出し中にDBトランザクションを保持しない。
-- 1バックエンド内のモジュール分離を前提とする。
+## 1 範囲と原則
+- 仮データ→正規化→計算→ローカル保存・再読込→UIを先に確認し、同じ契約の保存口をBase44へ差し替える。
+- 実API接続はテスト利用者1人でGoogle予定再取得と実LINE返信を通す。
+- 手動調整は候補からの日付除外と時間帯編集。日別多忙度は直接編集しない。時間帯編集の値・粒度・優先順位・再取得後の維持は未決。
+- 共有は固定版リンク、グループ別許可・解除・期限を必須とする。画像、4人比較、AI補正、詳細な開発者画面、エクスポートは後回し。
+- 旧投票Botは別経路の検証版。今回の候補日投稿に投票・集計・確定テーブルを追加しない。
+- Google由来の予定、手動入力、計算結果、公開情報を分離。計算途中のデータを完成した結果として返さない。
+- 7種類は最小構成案。単なる件数削減のために所有者・公開範囲・寿命が違う情報を一緒に公開しない。
 
-## 1 更新処理
-```mermaid
-stateDiagram-v2
-  [*] --> queued
-  queued --> fetching: 更新開始
-  queued --> calculating: 保存済み予定を再計算
-  queued --> recommending: 保存済み芝から候補再計算
-  fetching --> calculating: 全ページ取得・検証成功
-  fetching --> failed: 取得失敗
-  calculating --> recommending: 芝生成成功
-  calculating --> failed: 計算失敗
-  recommending --> validating: AI成功または計算候補へ代替
-  validating --> committing: 最終候補を確定
-  validating --> failed: 計算候補も無効
-  committing --> succeeded: 一括保存・公開参照切替成功
-  committing --> failed: 保存失敗
-  queued --> superseded: 新しい要求を優先
-  committing --> superseded: 設定版・更新世代が古い
-  failed --> [*]
-  succeeded --> [*]
-  superseded --> [*]
-```
-再試行は同じ行を巻き戻さず、新runを作りretry_ofで関連付ける。途中終了はheartbeat期限で検出する案。表示用の進行状況に使う。
+## 2 Base44の前提
+- 標準Userを認証主体として利用。独自users・auth_identitiesは作らず、アプリのowner_idに標準Userのidを保存する。
+- 各エンティティにはBase44標準のid、created_date、updated_date等があるため再定義しない。ローカル側では同じ役割の値を補う。
+- ISO日時・ISO日付、数値、真偽値、配列・オブジェクトを使う。DB型timestamptzやSQLの複合主キーは持ち込まない。
+- エンティティ間のID参照は論理的な関連。参照先・所有者・版の一致はサーバーで検証する。
+- 一意制約、行ロック、複数レコードのトランザクション、比較更新の提供を仮定しない。作成前の存在確認だけで重複・競合を完全に防げたとは扱わない。
+- RLS/FLSとバックエンド関数のアクセス検証を設計する。サービス権限による処理はRLS/FLSを迂回するため、関数内で署名・本人・所有者・共有許可を検証する。
+- クラウドでの競合制御は接続検証の必須項目。未検証のまま複数実行・厳密な一回限り配信を保証しない。
 
-## 2 表示データと候補
-```mermaid
-stateDiagram-v2
-  state Display {
-    [*] --> unavailable
-    unavailable --> fresh: 初回公開成功
-    fresh --> stale: 更新失敗または鮮度期限超過
-    stale --> fresh: 新版公開成功
-  }
-  state Recommendation {
-    [*] --> invalid
-    invalid --> valid: 最新版の候補を公開
-    valid --> invalid: Google失敗・設定変更・日付境界
-    valid --> empty: 正常計算で対象候補なし
-    invalid --> empty: 正常計算で対象候補なし
-    empty --> valid: 候補ありで再公開
-    empty --> invalid: Google失敗・設定変更・日付境界
-  }
-```
-AI失敗だけではinvalidにせず計算候補を採用する。emptyは正常な候補0件、invalidは推薦に使えない状態。候補は最大3件、1〜2件はある分だけ。0件は正常なemptyとして扱う。
-fresh/staleは最終成功日時と取得状態から導出し、DBの重複フラグにしない。鮮度期限は未決。
-LINE送信失敗は計算失敗と別管理。共有済みの依頼版は後続更新で差し替えない。
+## 3 エンティティ一覧（標準User＋7種類）
 
-## 3 共有リンク
-```mermaid
-stateDiagram-v2
-  [*] --> active: 発行
-  active --> revoked: 無効化
-  active --> expired: 有効期限到達
-  revoked --> [*]
-  expired --> [*]
-```
-LINE共有は依頼者本人の依頼版に固定し、日別・時間別多忙度だけを公開。利用者×グループの許可を確認して発行。リンクを知る人が閲覧できる。最終候補日後・最大1カ月でexpired、共有解除で関連リンクをrevokedとする。再許可でも復活せず、他グループに影響しない。QRはURLの表現。送信済み画像・カード・テキストは残る。詳細は[LINE仕様](schedule-line-spec.md)。
+| 名前 | 用途 | 主な項目案 | 権限・更新 |
+|---|---|---|---|
+| UserProfile | 本人設定・LINE対応・連携状態 | owner_id, timezone, activity_windows[], search_days, excluded_dates[], line_user_id, line_display_name, google_connection_ref, google_status, settings_version, edit_version, latest_snapshot_id, current_run_id, candidate_state | 本人専用。LINE対応・接続参照・版・最新参照は検証済みサーバー処理でのみ変更。秘密は含めない |
+| CalendarSource | 全取得成功分の正規化予定 | owner_id, source_revision, run_id, calendar_id, fetched_at, timezone, range, events[], schema_version | 本人の内部データ。取得単位で作成し確定後は不変。予定名・本文なし |
+| ManualAdjustment | 現在有効な時間帯調整 | owner_id, start/endまたは日付・枠, adjustment_value, active, adjustment_revision | 本人のみ。具体的な区間・値の型は編集仕様確定後。Google予定を上書きしない |
+| AvailabilitySnapshot | 同じ入力版から計算した芝・候補 | owner_id, run_id, source_id, settings_version, edit_version, adjustment_refs[], calculation_version, timezone, generated_at, range, daily[], hourly[], candidates[], candidate_state, schema_version | 本人用。計算と検証が完了した結果を作成。不変。日別・時間別・候補を1レコード内にまとめる |
+| GroupPermission | 利用者×グループの共有許可 | owner_id, line_group_id, state, permission_version, granted_at, revoked_at | 本人が個別画面から許可・解除。現在の許可をサーバーが判定。名前を本人識別に使わない |
+| ShareSnapshot | LINEで共有した固定版とリンク | owner_id, source_snapshot_id, permission_id, permission_version, run_id, timezone, generated_at, range, daily_public[], hourly_public[], candidates[], token_hash, expires_at, revoked_at, schema_version | 内容は固定。失効のみ変更可。汎用エンティティAPIから匿名公開せず、専用APIが有効性を検証して公開DTOだけ返す |
+| OperationRun | 作業の制御状態・最小限の追跡情報 | run_id, owner_id, trigger, request_id, webhook_event_id, retry_of, state, stage, steps[], versions, result_snapshot_id, share_snapshot_id, delivery_state, error_code, started_at, finished_at | サーバー内部専用。ログと同じrun_idで追跡。ユーザー回答を保存する用途ではない |
 
-## 4 グループ別共有許可とLINE依頼
-本人連携・Google連携と共有許可は独立した状態。LINE userIdで識別し、表示名は補助情報。
-状態：未許可→許可済み→解除済み→再許可。解除で関連リンクを失効させ、再許可でも旧リンクを復活させない。
+### 3.1 補足
+- UserProfileの本人設定とLINE対応を同居させる案だが、クライアントによるline_user_idの自己申告書換えは認めない。本人連携の認証方式・Google認可秘密の保管先は実装時に確定。
+- line_user_id、owner_id、owner_id＋line_group_idの業務上一意性は必要。ただしDB制約として保証されるとは扱わない。曖昧な重複を検出したら先頭を採用せず処理を止める。
+- 除外日はUserProfileにまとめる。候補除外だけなら予定再取得・多忙度変更をしない。
+- edit_versionは手動調整集合の更新を識別する版。計算には使用した調整IDと各版を固定する。設定・調整の同時更新をどう整合させるかは接続検証で確定。
+- google_connection_refは秘密の参照。アクセストークン、リフレッシュトークンを通常のプロフィール・ログ・公開データへ保存しない。
+- OperationRunのstepsは既知の処理段階の記録に限定する。予定本文・入力全文・無制限の詳細ログを埋め込まない。
+- 日付ボタンによる投稿は投票・参加表明・確定として保存しない。
 
-```mermaid
-stateDiagram-v2
-  [*] --> not_allowed
-  not_allowed --> allowed: 対象グループの共有を許可
-  allowed --> revoked: 解除・関連リンク失効
-  revoked --> allowed: 再許可・旧リンクは失効のまま
-```
+## 4 ER図（論理的な関連）
+単数・一意は意図する業務ルールであり、Base44のFK/UNIQUE保証を表す図ではない。
 
-LINE依頼は受信→本人・連携・許可確認→Google再取得→計算→共有版固定→許可再確認→返信。
-未連携・未許可は個別設定へ案内。0件は正常メッセージ、取得失敗は失敗メッセージ。日付投稿を投票・確定として保存しない。
-送信済み・送信失敗を更新runの成功と区別する。待機時間・再送・本人連携方式は実装時に決める。
-
-## 5 テーブル構成
-共通：識別子はUUID、日時はtimestamptz、利用者の暦日はdate、分数はinteger。FKは明記した参照先を検証する。所有者をまたぐ関連は複合FK等で拒否する。
-
-| テーブル | 主な列 | 制約・役割 |
-|---|---|---|
-| users | id PK, timezone, created_at | タイムゾーンはアプリ側でも検証 |
-| auth_identities | id PK, user_id FK users, provider, subject | UNIQUE(provider, subject)。LINE userIdをsubjectとして識別する案。具体的連携方式は未決 |
-| calendar_connections | id PK, user_id FK, provider, calendar_id, secret_ref, status, last_success_at | UNIQUE(user_id, provider, calendar_id)。認証秘密はsecret_refの参照先で保護 |
-| user_settings_versions | id PK, user_id FK, version, effective_from, search_days, created_at | UNIQUE(user_id, version)。期間の具体選択値は未決 |
-| activity_windows | settings_id FK, weekday, slot_no, start_minute, end_minute | PK(settings_id, weekday, slot_no)。0≦start＜end≦1440。深夜跨ぎは2区間に正規化する案 |
-| excluded_dates | settings_id FK, date | PK(settings_id, date)。設定版ごとに固定 |
-| parameter_versions | id PK, module, version, schema_version, values_json, created_at | UNIQUE(module, version)。JSONを版付きスキーマで検証。固定コア列とは分離 |
-| source_snapshots | id PK, user_id FK, connection_id FK, range_start, range_end, fetched_at, schema_version | 全取得成功分だけ確定。不完全取得で前回を上書きしない |
-| calendar_events | id PK, source_id FK, provider_event_id, starts_at, ends_at, start_date, end_date_exclusive, is_all_day, transparency, participation_status, provider_updated_at | UNIQUE(source_id, provider_event_id)。時刻型と終日の日付型は排他的。終了＞開始。予定名・本文なし |
-| availability_snapshots | id PK, user_id FK, source_id FK, settings_id FK, calculation_params_id FK, run_id FK, generated_at | 元データ・設定・計算版を固定。日別と時間別の親 |
-| daily_availability | availability_id FK, date, active_minutes, timed_busy_minutes, all_day_equivalent_minutes, effective_busy_minutes, busy_ratio | PK(availability_id, date)。割合0〜1または活動時間0ならNULL。合成式は未決 |
-| hourly_availability | availability_id FK, date, slot_start, slot_end, active_minutes, busy_minutes, busy_ratio | PK(availability_id, slot_start)。区間は最大1時間、0≦busy≦active。対象外はNULL。元予定で部分表示を復元 |
-| recommendation_snapshots | id PK, user_id FK, availability_id FK, recommendation_params_id FK, run_id FK, selected_method, fallback_reason, generated_at | AI成功／計算のみ／代替を区別。最終候補は子行 |
-| recommendation_items | recommendation_id FK, variant, rank, date, reason_code | PK(recommendation_id, variant, rank)、UNIQUE(recommendation_id, variant, date)。variantはcalculated/ai/final |
-| publication_heads | user_id PK FK, availability_id FK NULL, recommendation_id FK NULL, settings_id FK, generation, candidate_status, invalid_reason | 公開中の参照先。candidate_status=valid/empty/invalid。設定版・所有者・芝参照の一致を公開時に検証 |
-| update_runs | id PK, user_id FK, trigger, generation, settings_id FK, state, retry_of FK NULL, started_at, heartbeat_at, finished_at, error_code | 世代と設定版が最新の場合だけ公開。terminal状態は更新しない |
-| module_executions | id PK, run_id FK, module, attempt, state, input_ref_json, output_ref_json, duration_ms, error_code, model_id, provider | UNIQUE(run_id, module, attempt)。秘密や生の予定本文をログへ入れない |
-| feedback | id PK, execution_id FK, author_id FK, rating, comment, created_at | 評価尺度は未決。比較した実行に結びつける |
-| share_links | id PK, owner_id FK, group_permission_id FK, availability_id FK, recommendation_id FK, token_hash UNIQUE, status, expires_at, created_at | 同じ依頼の固定版を参照。所有者・許可・期限を閲覧時にも検証。列は提案 |
-| line_identities | user_id FK, line_user_id UNIQUE, display_name | 本人連携。表示名は識別キーにしない。列は提案 |
-| group_share_permissions | id PK, user_id FK, group_id, state, granted_at, revoked_at | UNIQUE(user_id, group_id)。解除で対象リンク失効。再許可で旧リンクは復活しない。列は提案 |
-| line_requests | id PK, webhook_event_id UNIQUE, user_id FK, group_id, run_id FK, share_link_id FK NULL, reply_state | 二重返信防止・送信結果。投票・日付選択履歴なし。列は提案 |
-| comparison_sessions | id PK, viewer_id FK, created_at | 比較は閲覧者自身の操作。グループ共有URLは今回未決 |
-| comparison_members | session_id FK, position, share_link_id FK NULL, own_user_id FK NULL | PK(session_id, position)、position=0〜3。リンクか本人参照のいずれか。最大4人、重複所有者禁止をサーバーで検証 |
-
-閲覧者の未ログイン比較を保存するかは未決。現段階ではログイン済み比較セッションのみ永続化し、未ログイン表示は共有元だけとする案。共有公開範囲はアプリの公開DTOで制限する。
-ネイティブアプリ・辞書同期テーブルは削除。LINE関連データの採用DBへの実装は未確定。保存期間とリンク期限は別管理。
-
-## 6 ER図（主要な関連）
-```mermaid
+~~~mermaid
 erDiagram
-  users ||--o{ calendar_connections : owns
-  users ||--o{ user_settings_versions : configures
-  user_settings_versions ||--o{ activity_windows : contains
-  user_settings_versions ||--o{ excluded_dates : contains
-  calendar_connections ||--o{ source_snapshots : fetches
-  source_snapshots ||--o{ calendar_events : contains
-  source_snapshots ||--o{ availability_snapshots : produces
-  user_settings_versions ||--o{ availability_snapshots : governs
-  availability_snapshots ||--o{ daily_availability : contains
-  availability_snapshots ||--o{ hourly_availability : contains
-  availability_snapshots ||--o{ recommendation_snapshots : informs
-  recommendation_snapshots ||--o{ recommendation_items : contains
-  users ||--o| publication_heads : publishes
-  users ||--o{ share_links : shares
-  users ||--o| line_identities : links
-  users ||--o{ group_share_permissions : permits
-  group_share_permissions ||--o{ share_links : governs
-  availability_snapshots ||--o{ share_links : freezes
-  recommendation_snapshots ||--o{ share_links : freezes
-  users ||--o{ line_requests : requests
-  users ||--o{ update_runs : requests
-  update_runs ||--o{ module_executions : records
-  module_executions ||--o{ feedback : evaluated
-  comparison_sessions ||--|{ comparison_members : contains
-  share_links ||--o{ comparison_members : references
-```
+  User ||--o| UserProfile : configures
+  User ||--o{ CalendarSource : fetches
+  User ||--o{ ManualAdjustment : edits
+  User ||--o{ AvailabilitySnapshot : calculates
+  User ||--o{ GroupPermission : permits
+  User ||--o{ OperationRun : starts
+  CalendarSource ||--o{ AvailabilitySnapshot : source
+  AvailabilitySnapshot ||--o{ ShareSnapshot : freezes
+  GroupPermission ||--o{ ShareSnapshot : governs
+  OperationRun ||--o| AvailabilitySnapshot : produces
+  OperationRun ||--o| ShareSnapshot : shares
+~~~
 
-## 7 一括公開の手順
-1. runに世代・設定版を固定し、外部API取得と計算を行う。
-2. source→availability→recommendationの各行を作る。未公開データは閲覧APIから参照させない。
-3. 短いDBトランザクションでpublication_headsをロックし、世代・設定版・所有者を検証。
-4. 芝・候補の参照先とcandidate_statusを同時に切り替え、runをsucceededにする。
-5. 古い世代なら公開せずsupersededにする。
-Google失敗時は前回availabilityを残し候補をinvalidにする。失敗処理も世代を照合し、古い失敗で新しい成功を無効化しない。
-DB停止で無効化を書けない場合は配信エラーとして扱う。LINE共有APIは期限と共有許可を検証する。既存共有版は固定し、後続失敗で別版へ差し替えない。解除・期限でアクセス停止する。
+調整集合の参照はAvailabilitySnapshot.adjustment_refsにIDと版を保存する。ユーザー設定の最新版参照はUserProfile.latest_snapshot_id、共有先の固定参照はShareSnapshot.source_snapshot_idで分ける。
 
-## 8 インデックス・検証
-- source_snapshots(connection_id, fetched_at)、daily_availability(availability_id,date)、share_links(token_hash)、update_runs(user_id,started_at)。
-- 多くの参照はPK/UNIQUEを利用。FK列の必要な索引も作る。
-- キャンセル／空き扱い等の具体的除外基準、終日合成は別ルールとして確定後にテスト。
-- 型不正、外部API途中失敗、同時更新、古い失敗到着、活動時間0、候補0〜3件、日付境界、グループ別許可・解除・再許可、リンク期限、Webhook再送を検証する。
-- 時間別に実区間を必要とする場合は対象sourceのcalendar_eventsを参照して部分描画データを作る。予定データを公開APIへそのまま返さない。
+## 5 正規化予定と保存の境界
+- Google APIの生レスポンスを公開DBへ丸ごと保存しない。全ページの取得完了と検証成功後、必要項目だけ正規化してCalendarSourceに保存。
+- CalendarSourceのrangeはstart_dateとend_date_exclusive、timezoneは日別集計に使う利用者タイムゾーン。取得時のAPIリクエスト境界もrunで追跡できるようにする。
+- 時刻予定はkind=timed、provider_event_id、starts_at、ends_atを持ち、日時はUTCのISO日時へ統一する案。
+- 終日予定はkind=all_day、provider_event_id、start_date、end_date_exclusiveを持つ。時刻予定と混ぜず、終日終了日は排他的な日付のまま保持。
+- どちらもstatus、transparency、event_type、participation_status等の集計判断に必要な状態を保持。情報がない参加状態を承諾済みと推測しない。
+- 予定名・本文は保存しない。キャンセル・空き扱い・本人辞退等の採否は別の計算規則として確定する。
+- 保存用正規化予定は元イベントとの対応を維持。日跨ぎ分割・活動時間切出し・重複統合は計算用区間への変換で行う案。
+- ManualAdjustmentは別入力。適用・解除後に時間別→日別→候補を再計算する。Google再取得後の維持方針は未決なので自動消去・自動維持を確定済みとしない。
 
-## 次に確定する項目
-1. PostgreSQL採用の可否。
-2. 曜日別活動時間：1日1区間か複数区間か。
-3. 比較相手追加：共有リンク／QRの取り込みと本人識別方式。
-4. 履歴保持期間、AIログの保存範囲、共有リンク再表示方式。
+## 6 更新・候補・送信の状態
+### 6.1 実行状態
+queued → running → succeeded / failed / superseded / ignored。
+stateは実行の成否、stageは現在の処理箇所。詳細な段階名・エラーコードは[実行・ログ仕様](schedule-operation-log-spec.md)を正本にする。
+再試行は新run_idで開始しretry_ofで元runを参照。終了したrunをqueuedへ巻き戻さない。
 
-関連：[情報フロー](schedule-internal-flow.md)、[外部設計](schedule-external-design.md)。
+### 6.2 候補状態
+- valid：最新の設定・調整・日付条件に合った候補あり。
+- empty：正常計算の結果0件。「候補日が見つかりませんでした」。エラーではない。
+- invalid：設定変更後の再計算待ち・取得失敗・版不一致等。旧候補を新しい有効候補として送らない。
+- 前回の芝は古さ・失敗付きで表示可能。候補の可否とは別に扱う。
+- 候補状態の変更自体をDBへ書けない場合、成功したふりをしない。必要な版・有効性を確認できなければ新しい候補の配信を止める。
+
+### 6.3 送信状態
+not_required / pending / sending / sent / failed / unknown。
+- 計算成功とLINE送信成功は別。タイムアウト等で受理の有無が分からない場合はunknownで、failedと決めつけて再送しない。
+- sentはLINE APIで受理を確認した意味。端末での表示・既読・ボタン操作の成功を保証しない。
+- UIでの表示成功・実機確認は試験証拠として別に残す。
+
+## 7 更新と公開の制御案
+1. 依頼を受け付け、run_idを発行。本人・入力・必要なグループ許可を検証する。
+2. 設定版・調整版・現在のrunを固定。再取得が必要なら全ページ取得し、完了分のみCalendarSourceとして保存。
+3. 調整を適用して多忙度・候補を作る。除外だけの変更は既存多忙度から候補のみ再計算する。
+4. 同一入力版のAvailabilitySnapshotを検証・保存。参照前に所有者・版の一致を確認する。
+5. 古い実行ならsuperseded。新しい結果として公開しない。
+6. 本人UIの最新参照を切替。途中保存を公開しない。設定・調整保存成功と再計算失敗は別に表示。
+7. LINE共有なら現在の許可を確認し公開用ShareSnapshotを作成。送信直前にも許可と許可版を再確認して返信する。
+8. OperationRunと構造化ログに結果を記録。制御情報の保存失敗は成功として処理を続けない。
+
+この手順はSQLトランザクションによる保証ではない。版の読み比べだけでは確認と更新の間の競合を防げない。実行受付・排他・最新版切替・再送防止の実現方法はD07相当の接続検証で確認する。フロントのボタン無効化や単一関数内のメモリロックをクラウド全体の排他と扱わない。未検証なら同時要求を受けない制限とその実現方法を決め、保証できない運用へ拡張しない。
+
+## 8 共有許可・失効
+- 許可の単位はowner_id＋line_group_id。state=allowed/revoked、未登録は未許可。
+- permission_versionは許可・解除・再許可のたびに新しい不透明な版IDにする案。共有版が発行時の許可版を保持。
+- 閲覧には、リンクが未失効かつ期限内、現在の許可がallowed、所有者・グループ・許可版が一致することが必要。
+- 許可解除で既存リンクを失効。再許可後にallowedへ戻っても許可版が違うため旧リンクは復活しない。一括更新の完了だけに依存しない。
+- 他ユーザー・別グループの許可に影響させない。送信待ち処理も旧許可版なら停止。
+- 許可の最終確認と外部送信の間には競合が残り得る。DBとLINE APIをまたぐ原子的な処理を仮定せず、範囲・限界を確認する。LINEに受理済みのカード・文章は回収できたと扱わない。
+- 固定共有内容は後の取得・編集・設定変更で差し替えない。解除・期限によるアクセス停止は行う。
+- 期限は最終候補日後・発行から最大1カ月。具体的な月末・タイムゾーン境界は実装時に確定する。
+- 公開APIは汎用エンティティの匿名読取を開放せず、トークンのハッシュ照合・期限・許可を確認して必要項目のみ返す。検証不能時は公開しない。
+- 失効とデータ消去は別。保存期間・削除処理は未決。
+
+## 9 操作と再実行範囲
+| 操作 | 保存・再処理 |
+|---|---|
+| Google再取得・LINE依頼 | 全取得→正規化→必要な調整適用→多忙度→候補 |
+| 時間帯編集・解除 | 調整保存→多忙度→候補。適用規則は未決 |
+| 候補日除外・解除 | 設定保存→候補のみ再計算。多忙度は変えない |
+| 共有許可・解除 | 許可状態と版変更。解除で既存リンク停止。予定取得不要 |
+| 共有閲覧 | 固定共有版・期限・許可の検証。再取得しない |
+
+## 10 この草案の合格条件・残る判断
+- エンティティの所有者、機密性、公開項目、参照する版が説明できる。
+- 同じ架空データをローカル保存とBase44保存で再読込して比較できる。
+- 候補0件、未取得、失敗、計算成功・送信失敗を区別できる。
+- 他人の編集拒否、共有解除・再許可、期限境界、部分取得、古い応答・Webhook再送を検証する。
+- 未決：編集値・粒度・重複優先・再取得時の調整扱い、終日合成、本人連携・秘密の保管方式、排他と再送制御、待機時間・期限境界・保存期間。
+- 本書の更新はスキーマのデプロイ・実装テスト完了を意味しない。
+
+## 参照
+- [実行・ログ仕様](schedule-operation-log-spec.md)
+- [内部設計](schedule-internal-flow.md)／[LINE仕様](schedule-line-spec.md)
+- [Base44 Entity Schemas](https://docs.base44.com/developers/backend/resources/entities/entity-schemas)：配列・オブジェクト、標準項目、一意制約の制限。
+- [Base44 Security](https://docs.base44.com/developers/backend/resources/entities/security)：RLS/FLS、サービス権限を利用する関数の検証責任。
