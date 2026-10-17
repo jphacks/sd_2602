@@ -1,0 +1,142 @@
+{
+  "name": "OperationRun",
+  "type": "object",
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "UUID v4\u30021\u56de\u306e\u6709\u52b9\u306a\u64cd\u4f5c\u5168\u4f53\u3067\u5171\u901a"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "fixture_check",
+        "web_refresh",
+        "line_request",
+        "settings_change",
+        "manual_edit",
+        "manual_reset",
+        "exclusion_change",
+        "share_grant",
+        "share_revoke"
+      ]
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "webhook_event_id": {
+      "type": "string"
+    },
+    "retry_of": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "superseded",
+        "ignored"
+      ]
+    },
+    "stage": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "attempt": {
+            "type": "integer"
+          },
+          "started_at": {
+            "type": "string"
+          },
+          "finished_at": {
+            "type": "string"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "running",
+              "succeeded",
+              "failed",
+              "skipped"
+            ]
+          },
+          "error_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stage",
+          "attempt",
+          "state"
+        ]
+      }
+    },
+    "versions": {
+      "type": "object",
+      "properties": {
+        "source_revision": {
+          "type": "string"
+        },
+        "settings_version": {
+          "type": "string"
+        },
+        "edit_version": {
+          "type": "string"
+        },
+        "permission_version": {
+          "type": "string"
+        }
+      }
+    },
+    "result_snapshot_id": {
+      "type": "string"
+    },
+    "share_snapshot_id": {
+      "type": "string"
+    },
+    "delivery_state": {
+      "type": "string",
+      "enum": [
+        "not_required",
+        "pending",
+        "sending",
+        "sent",
+        "failed",
+        "unknown"
+      ]
+    },
+    "error_code": {
+      "type": "string"
+    },
+    "reason_code": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "finished_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "owner_id",
+    "trigger",
+    "state"
+  ]
+}

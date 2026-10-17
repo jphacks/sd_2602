@@ -1,0 +1,214 @@
+{
+  "timezone": "Asia/Tokyo",
+  "offsetMinutes": 540,
+  "activityWindow": { "startMinute": 540, "endMinute": 1320 },
+  "fixtures": [
+    {
+      "name": "normal",
+      "description": "通常：重複・日跨ぎ・終日を含む1週間分。10-19と10-21は150分で同点",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": [
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-1901",
+          "starts_at": "2026-10-19T10:00:00+09:00",
+          "ends_at": "2026-10-19T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-1902",
+          "starts_at": "2026-10-19T14:00:00+09:00",
+          "ends_at": "2026-10-19T15:30:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2001",
+          "starts_at": "2026-10-20T09:00:00+09:00",
+          "ends_at": "2026-10-20T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2101",
+          "starts_at": "2026-10-21T10:00:00+09:00",
+          "ends_at": "2026-10-21T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2102",
+          "starts_at": "2026-10-21T14:00:00+09:00",
+          "ends_at": "2026-10-21T15:30:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2201",
+          "starts_at": "2026-10-22T10:00:00+09:00",
+          "ends_at": "2026-10-22T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2202",
+          "starts_at": "2026-10-22T10:30:00+09:00",
+          "ends_at": "2026-10-22T11:30:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-ev-2203",
+          "starts_at": "2026-10-22T22:00:00+09:00",
+          "ends_at": "2026-10-23T10:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "all_day",
+          "provider_event_id": "mock-ev-2401",
+          "start_date": "2026-10-24",
+          "end_date_exclusive": "2026-10-25",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        }
+      ]
+    },
+    {
+      "name": "empty",
+      "description": "予定0件（未取得ではなく取得済みの空き）",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": []
+    },
+    {
+      "name": "duplicate",
+      "description": "同一provider_event_idの重複",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": [
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-dup-001",
+          "starts_at": "2026-10-19T10:00:00+09:00",
+          "ends_at": "2026-10-19T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-dup-001",
+          "starts_at": "2026-10-19T10:00:00+09:00",
+          "ends_at": "2026-10-19T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        }
+      ]
+    },
+    {
+      "name": "cancelled",
+      "description": "キャンセル済み予定を含む",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": [
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-cancel-001",
+          "starts_at": "2026-10-19T10:00:00+09:00",
+          "ends_at": "2026-10-19T11:00:00+09:00",
+          "status": "cancelled",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-cancel-002",
+          "starts_at": "2026-10-19T13:00:00+09:00",
+          "ends_at": "2026-10-19T14:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        }
+      ]
+    },
+    {
+      "name": "fully_busy",
+      "description": "全日程を終日多忙で埋める（同点は近い日順）",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": [
+        {
+          "kind": "all_day",
+          "provider_event_id": "mock-full-001",
+          "start_date": "2026-10-18",
+          "end_date_exclusive": "2026-10-25",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "participation_status": "accepted"
+        }
+      ]
+    },
+    {
+      "name": "google_compat",
+      "description": "Google互換：tentative保持・workingLocation/declinedは多忙に数えない",
+      "range": { "start_date": "2026-10-18", "end_date_exclusive": "2026-10-25" },
+      "events": [
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-gc-001",
+          "starts_at": "2026-10-19T10:00:00+09:00",
+          "ends_at": "2026-10-19T11:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "event_type": "default",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-gc-002",
+          "starts_at": "2026-10-19T14:00:00+09:00",
+          "ends_at": "2026-10-19T15:00:00+09:00",
+          "status": "tentative",
+          "transparency": "opaque",
+          "event_type": "default",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "all_day",
+          "provider_event_id": "mock-gc-003",
+          "start_date": "2026-10-19",
+          "end_date_exclusive": "2026-10-20",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "event_type": "workingLocation",
+          "participation_status": "accepted"
+        },
+        {
+          "kind": "timed",
+          "provider_event_id": "mock-gc-004",
+          "starts_at": "2026-10-19T16:00:00+09:00",
+          "ends_at": "2026-10-19T17:00:00+09:00",
+          "status": "confirmed",
+          "transparency": "opaque",
+          "event_type": "default",
+          "participation_status": "declined"
+        }
+      ]
+    }
+  ]
+}
