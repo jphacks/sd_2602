@@ -1,291 +1,322 @@
-# りすけ（Risuke）アーキテクチャ
+# リスケRisukeアーキテクチャ
 
-更新日：2026-10-17（line-testブランチの新設計へ更新）
-設計の入口：`docs/schedule-design-index.md`（line-testブランチ）
-正本の参照先：
-- DB草案：`docs/schedule-state-and-schema.md`（Base44最小構成・標準User＋7エンティティ）
-- 実行・ログ：`docs/schedule-operation-log-spec.md`（run_id / stage / error_code / delivery_state）
-- LINE仕様：`docs/schedule-line-spec.md`
+更新日：2026-10-18。全体構造の正本。クラスは論理モジュールを表す。実装状況は[機能一覧](docs/spec/features.md)、詳細な入出力は[契約](docs/spec/contracts.md)を参照する。
 
-## 方針
+## 1 方針と資料の分担
 
-- **DBはBase44内蔵DB**（旧PostgreSQL草案はアーカイブ済み・採用しない）。
-- 初版の範囲：**本人の芝・候補・LINE固定リンク共有**のみ。AI補正・4人比較・画像生成・エクスポート・詳細開発者画面は後回し。
-- **フロントのデザインは未確定**。UIはデザイン確定後に実装する。本書ではUIを構成要素としてのみ示す。
-- 計算コア（正規化・多忙度・候補選出）は **DB・外部APIを一切知らない純関数**。固定入力で単独実行できる。
-- Google・LINE・DB・時計はアダプターで交換可能。Phase 1 の Google 取得はモック（fixture_check）。
-- 手動調整は「候補日からの除外」と「時間帯編集」の2種（日別多忙度は直接編集しない）。
+- 初版は本人の芝・時間別詳細・候補日・共有画像保存・LINEカード自動生成と固定版リンク共有。将来機能とUIのみの機能を実行対象に混ぜない。
+- 計算は純関数。日時・調整の仮ルールは交換可能にし、意味・単位・未取得の表現を境界で固定する。
+- 受付と実行を分離する。queuedは耐久的に受け付けた状態であり、単にDBへ書くだけで自動実行されるとは扱わない。
+- 本人用は最新の完成版、共有用は依頼時の固定版。計算途中をUI・共有へ渡さない。
+- 標準User＋7エンティティの既存草案に、画像・カード参照の保存設計を追加する。具体的スキーマ拡張はP13。DBのロック・一意制約・複数レコードの原子性は前提にしない。
+- 認証・所有者・共有許可をサーバーで検証する。秘密・予定名・本文は表示・ログへ出さない。
 
-## 1. クラス図（モジュール・データ契約・エンティティ）
+| 内容の正本 | 資料 |
+| --- | --- |
+| 範囲・実装状況 | [機能一覧](docs/spec/features.md) |
+| 操作・画面 | [外部設計](docs/spec/external.md) |
+| 受付・実行・更新経路 | [内部設計](docs/spec/internal.md) |
+| 関数・日時・仮ルール・表示用データ | [契約](docs/spec/contracts.md) |
+| 保存・関連 | [DB草案](docs/spec/schema.md) |
+| 状態・コード・ログとDBの対応 | [ログ仕様](docs/spec/logs.md) |
+| 権限・受入条件・未決 | [権限表](docs/spec/access.md)／[確認リスト](docs/spec/checks.md)／[判断待ち](docs/spec/decisions.md) |
 
-```mermaid
+## 2 クラス図
+
+~~~mermaid
 classDiagram
     direction TB
-
+    class WebUI {
+        +showStatus(runId)
+    }
+    class FeatureGate {
+        +resolveMode(feature)
+    }
     class LineReceiver {
-        <<M11 受信（Phase 3）>>
-        +verifySignature(body) RequestId
-        +dedupe(webhookEventId) bool
+        +verifySignature(body)
+        +identifyCommand(event)
+    }
+    class RequestReceiver {
+        +enqueue(request) RunId
+    }
+    class JobQueue {
+        <<基盤は判断待ちP05>>
+        +accept(request) RunId
+        +claim() Job
+    }
+    class Worker {
+        +process(runId)
     }
     class UpdateController {
-        <<M02 更新制御>>
-        +enqueue(owner, trigger) RunId
-        +process(run) void
-        +retry(runId) RunId
+        +process(run)
     }
-    class CalendarSource {
-        <<M03 アダプター: fetch stage>>
-        +fetch(range, timezone) RawEvents
+    class CalendarAdapter {
+        +fetch(range, timezone)
     }
     class EventNormalizer {
-        <<M04 純関数: normalize stage>>
-        +normalize(rawEvents) NormalizedEvent[]
-        -splitByDate(e) DailyPart[]
+        +normalize(rawEvents)
     }
     class AdjustmentApplier {
-        <<apply_adjustments stage>>
-        +apply(events, adjustments[]) EventPart[]
-        -toIntervals(e) Interval[]
+        <<契約詳細は判断待ちP01>>
+        +apply(events, adjustments)
     }
     class DayAggregator {
-        <<M05 純関数: calculate stage>>
-        +daily(parts, activityRules) DailyAvailability[]
-        +hourly(parts, activityRules) HourlyAvailability[]
-        -allDayEquivalent(e) int
+        +calculateDaily(events, options)
+        +calculateHourly(events, options)
     }
     class Recommender {
-        <<M06 純関数: recommend stage>>
-        +select(daily, excludedDates, period, today) Candidates
-        -sortByCalmnessThenCloseness(days) RankedDay[]
+        +select(daily, options)
+    }
+    class TimeAdapter {
+        <<仮ルールを交換>>
+        +resolveDates(input)
     }
     class Store {
-        <<M09 保存アダプター: persist/publish stage>>
-        +saveCalendarSource(run, data) SourceId
-        +saveSnapshot(run, snapshot) SnapshotId
-        +publish(owner, snapshotId) void
-        +readPublished(owner) PublicationView
+        +saveSnapshot(run, result)
+        +publish(owner, snapshotId)
+        +readPublished(owner)
     }
-    class ShareAssembler {
-        <<prepare_share stage（Phase 3）>>
-        +buildShare(snapshot, permission) ShareView
+    class ViewAssembler {
+        +buildPersonal(snapshot)
+        +buildShare(snapshot, permission)
+    }
+    class ShareImageRenderer {
+        <<WebUIの共有部分のみ>>
+        +render(snapshot)
+    }
+    class ImageStore {
+        <<保存と配信用URLはP13>>
+        +save(snapshotId, image)
+    }
+    class CardAssembler {
+        +build(savedSnapshot, savedImage, copyTemplate)
+    }
+    class ShareReader {
+        +read(token)
     }
     class LineSender {
-        <<deliver stage（Phase 3）>>
-        +reply(token, messages) DeliveryState
+        +reply(token, messages)
     }
+    class User
+    class UserProfile
+    class CalendarSource
+    class ManualAdjustment
+    class AvailabilitySnapshot
+    class GroupPermission
+    class ShareSnapshot
+    class OperationRun
 
-    class UserProfile {
-        <<エンティティ>>
-        owner_id
-        timezone
-        activity_windows[]
-        search_days
-        excluded_dates[]
-        line_user_id
-        settings_version
-        edit_version
-        latest_snapshot_id
-        candidate_state
-    }
-    class CalendarSourceRow {
-        <<エンティティ: CalendarSource>>
-        owner_id
-        source_revision
-        run_id
-        range
-        timezone
-        events[]
-    }
-    class ManualAdjustment {
-        <<エンティティ>>
-        owner_id
-        interval
-        adjustment_value
-        active
-        adjustment_revision
-    }
-    class AvailabilitySnapshot {
-        <<エンティティ>>
-        owner_id
-        run_id
-        source_id
-        settings_version
-        edit_version
-        daily[]
-        hourly[]
-        candidates[]
-        candidate_state
-    }
-    class GroupPermission {
-        <<エンティティ>>
-        owner_id
-        line_group_id
-        state
-        permission_version
-    }
-    class ShareSnapshot {
-        <<エンティティ>>
-        owner_id
-        source_snapshot_id
-        permission_id
-        token_hash
-        expires_at
-        daily_public[]
-        candidates[]
-    }
-    class OperationRun {
-        <<エンティティ>>
-        run_id
-        owner_id
-        trigger
-        state
-        steps[]
-        delivery_state
-        error_code
-        result_snapshot_id
-    }
+    WebUI --> FeatureGate
+    FeatureGate --> RequestReceiver : 実行対象のみ
+    LineReceiver --> RequestReceiver : 署名と依頼を検証後
+    RequestReceiver --> JobQueue : 本人と入力とモードを検証
+    RequestReceiver ..> OperationRun : 受付の記録
+    JobQueue --> Worker : 永続受付と実行権の取得
+    Worker --> UpdateController
+    UpdateController --> CalendarAdapter
+    UpdateController --> EventNormalizer
+    UpdateController --> AdjustmentApplier
+    UpdateController --> DayAggregator
+    UpdateController --> Recommender
+    UpdateController --> TimeAdapter
+    UpdateController --> Store
+    UpdateController ..> OperationRun : 状態と段階
+    Store ..> UserProfile : 最新完成版の参照
+    Store ..> CalendarSource
+    Store ..> ManualAdjustment
+    Store ..> AvailabilitySnapshot
+    Store --> ViewAssembler : 検証済み完成版のみ
+    ViewAssembler --> ShareImageRenderer : カレンダー更新時
+    ShareImageRenderer --> ImageStore : snapshotIdに固定して保存
+    UpdateController --> CardAssembler : LINE依頼は保存済み版を読込
+    CardAssembler --> ImageStore : 画像の版と保存成功を確認
+    ViewAssembler ..> ShareSnapshot : 公開項目の固定
+    ViewAssembler ..> GroupPermission : 現在の許可版
+    CardAssembler --> LineSender : 同一版の画像と候補と共有リンク
+    CardAssembler --> ViewAssembler : 同一版の共有ページを組立
+    ShareReader ..> ShareSnapshot
+    ShareReader ..> GroupPermission : 期限と許可版を検証
+    User --> UserProfile
+~~~
 
-    LineReceiver --> UpdateController : 有効な依頼のみ
-    UpdateController --> CalendarSource : fetch
-    CalendarSource --> EventNormalizer : RawEvents
-    EventNormalizer --> AdjustmentApplier : NormalizedEvent[]
-    AdjustmentApplier --> DayAggregator : EventPart[]
-    DayAggregator --> Recommender : DailyAvailability[]
-    Recommender --> Store : Candidates
-    Store --> ShareAssembler : snapshot固定
-    ShareAssembler --> LineSender : 許可再確認後に返信
-    UpdateController *-- OperationRun : 1実行=1行
-    Store ..> UserProfile : 公開参照の切替
-    Store ..> CalendarSourceRow : 取得分のみ保存
-    Store ..> AvailabilitySnapshot : 計算完成分のみ保存
-    ShareAssembler ..> ShareSnapshot : 固定版・期限
-    ShareAssembler ..> GroupPermission : 許可版の照合
-```
+JobQueueは論理的な待ち行列で、採用サービスや新しいDBエンティティの追加を確定する図ではない。受付・起動・claim・復旧の実現方式はP05。UIのみの機能はRequestReceiverへ進まない。
 
-計算コア（EventNormalizer・AdjustmentApplier・DayAggregator・Recommender）はエンティティを直接扱わない。Store が純関数の入出力とエンティティの橋渡しをする。
+日跨ぎ分割・区間切出し・重複統合は計算用区間生成の責務。Normalizerは保存用入力から計算用形式への変換と検証を担当する。
 
-## 2. データフロー（stage順：実行ログ仕様と同一の段階名）
+## 3 受付と実行・更新の経路
 
-```mermaid
+~~~mermaid
 flowchart TD
-    REQ[依頼受付: web_refresh / line_request / manual_edit / exclusion_change] --> CTRL[M02 UpdateController<br>run_id発行 state=queued]
-    CTRL --> RECV[receive: request_id発行・再送照合]
-    RECV --> AUTH[authorize: 本人・Google連携・グループ許可]
-    AUTH --> LOAD[load: 設定版・調整版・保存済み予定]
-    LOAD -->|再取得必要| FETCH[fetch: 全ページ取得 - モック]
-    LOAD -->|除外のみ| REC
-    FETCH --> NORM[normalize: 正規化予定]
-    NORM --> ADJ[apply_adjustments: 手動調整の適用]
-    ADJ --> CALC[calculate: 日別・時間別の多忙度]
-    CALC --> REC[recommend: 除外・順位付け・最大3件]
-    REC --> PERS[persist: CalendarSource + AvailabilitySnapshot 保存]
-    PERS --> PUB[publish: 入力版再確認→UserProfile 最新参照へ切替]
-    PUB --> SHARE{LINE共有か?}
-    SHARE -->|はい| PREP[prepare_share: ShareSnapshot固定・リンク発行]
-    PREP --> DLV[deliver: 送信直前の許可再確認→LINE返信]
-    SHARE -->|いいえ| DONE[run state=succeeded]
-    DLV --> DONE
-    CTRL -.->|各段階| RUNS[(OperationRun.steps + 構造化ログ)]
-    PUB -.->|失敗| ERR[state=failed + error_code<br>前回の芝は古さ表示・候補はinvalid]
-```
+    REQ[WebまたはLINE依頼] --> MODE{実行モード}
+    MODE -->|UIのみ| DEMO[準備中または表示デモで終了]
+    MODE -->|モックまたは実接続| AUTH[receiveとauthorize: 依頼と本人と入力の検証]
+    AUTH -->|拒否| DENY[安全な拒否応答・受付ログのみ]
+    AUTH -->|有効| QUEUE[耐久受付とrun記録: queued]
+    QUEUE --> ACK[run_idを返す・Web接続から分離]
+    QUEUE --> CLAIM[実行担当が実行権を取得: running]
+    CLAIM --> CHECK[権限と入力版を再確認]
+    CHECK --> LOAD[load: 設定と保存済み予定と調整]
+    LOAD --> KIND{必要な再処理}
+    KIND -->|LINE依頼| SAVED[保存済み完成版と画像を検証]
+    SAVED -->|候補あり| SHARE
+    SAVED -->|正常0件| EMPTY
+    SAVED -.->|未準備または版不一致| ERROR
+    KIND -->|取得必要| FETCH[fetch: 全ページ取得]
+    FETCH --> NORM[normalize]
+    KIND -->|保存済み予定で再計算| ADJ[apply_adjustments]
+    NORM --> ADJ
+    ADJ --> CALC[calculate]
+    KIND -->|候補条件のみ| REC[recommend]
+    CALC --> REC
+    KIND -->|共有許可変更のみ| PERM[persist: 許可と許可版]
+    PERM --> DONE[succeeded]
+    REC --> SAVE[persist: 必要な取得版と完成版]
+    SAVE --> PUB{publish: 所有者と現在の版を検証}
+    PUB -->|古い実行| OLD[superseded・最新参照を変更しない]
+    PUB -->|有効| SWITCH[本人用最新参照を切替]
+    SWITCH --> IMAGE[render_share_image: WebUI共有部分を画像化]
+    IMAGE --> IMAGESTORE[persist: 画像と元版の参照を保存]
+    IMAGESTORE --> DONE
+    SHARE[prepare_share: 候補カードともっと見ると固定リンクを作成]
+    EMPTY[prepare_shareをskipped・正常0件の案内]
+    SHARE --> SHARESAVE[persist: 共有版とカードの参照]
+    SHARESAVE --> SEND[deliver: 許可再確認と送信]
+    EMPTY --> SEND
+    SEND --> RESULT{送信結果}
+    RESULT -->|受理確認| DONE
+    RESULT -->|明示拒否| FAIL[failed・delivery_stateはfailed]
+    RESULT -->|受理不明| UNKNOWN[failed・delivery_stateはunknown]
+    CHECK -.->|失敗| ERROR[段階と原因を記録・計算と画像と送信の成否を区別]
+    FETCH -.->|失敗| ERROR
+    NORM -.->|失敗| ERROR
+    ADJ -.->|失敗| ERROR
+    CALC -.->|失敗| ERROR
+    REC -.->|失敗| ERROR
+    SAVE -.->|失敗| ERROR
+    SHARE -.->|失敗| ERROR
+    SHARESAVE -.->|失敗| ERROR
+    IMAGE -.->|失敗| ERROR
+    IMAGESTORE -.->|失敗| ERROR
+~~~
 
-段階は `schedule-operation-log-spec.md` §4 の stage 名（receive〜deliver）に1:1で対応する。state は queued → running → succeeded / failed / superseded / ignored。
+全段階の失敗は更新制御で扱う。図の点線は代表例。保存・計算失敗の案内返信が送信できてもrun.stateはfailed。送信失敗だけなら保存済み計算結果を消さない。古いrunの失敗で新しいrunの有効候補を無効化しない。
 
-## 3. ER図（論理関連・line-test草案§4と同一）
+stage名・再実行順序・状態は[ログ仕様](docs/spec/logs.md)に従う。設定・調整は計算前にpersistを通る場合があり、全操作が図の全段階を通るわけではない。
 
-```mermaid
+## 4 データの関連
+
+~~~mermaid
 erDiagram
-  User ||--o| UserProfile : configures
-  User ||--o{ CalendarSource : fetches
-  User ||--o{ ManualAdjustment : edits
-  User ||--o{ AvailabilitySnapshot : calculates
-  User ||--o{ GroupPermission : permits
-  User ||--o{ OperationRun : starts
-  CalendarSource ||--o{ AvailabilitySnapshot : source
-  AvailabilitySnapshot ||--o{ ShareSnapshot : freezes
-  GroupPermission ||--o{ ShareSnapshot : governs
-  OperationRun ||--o| AvailabilitySnapshot : produces
-  OperationRun ||--o| ShareSnapshot : shares
-```
+    User ||--o| UserProfile : configures
+    User ||--o{ CalendarSource : fetches
+    User ||--o{ ManualAdjustment : edits
+    User ||--o{ AvailabilitySnapshot : calculates
+    User ||--o{ GroupPermission : permits
+    User ||--o{ OperationRun : starts
+    CalendarSource ||--o{ AvailabilitySnapshot : source
+    AvailabilitySnapshot ||--o{ ShareSnapshot : freezes
+    GroupPermission ||--o{ ShareSnapshot : governs
+    OperationRun ||--o| AvailabilitySnapshot : produces
+    OperationRun ||--o| ShareSnapshot : shares
+~~~
 
-所有者・版の一致はサーバー側で検証する（DB側のFK/UNIQUE保証は前提としない）。
+論理関連であり、DBのFK・UNIQUE保証ではない。表示データは[契約](docs/spec/contracts.md)、アクセスは[権限表](docs/spec/access.md)を参照。
 
-## 4. Phase 1 のスコープ（フロント除く）
+## 5 配置と実装状態
 
-| 対象 | 内容 |
-|---|---|
-| エンティティ定義 | 標準User + 7エンティティのスキーマ（RLSは後で設定） |
-| 計算コア | normalize / busyness / recommend の純関数 |
-| 仮データ | Git管理の固定JSON（正常・重複・日跨ぎ・終日・0件・全日多忙・Google互換） |
-| モック取得 | CalendarSource アダプターのモック実装 |
-| 更新制御 | trigger=fixture_check / web_refresh の run 発行と stage 記録 |
-| 除外 | UI実装・LINE送信・共有・Google実API接続 |
+~~~text
+src/                        Webアプリ・計算コア・モック
+base44/
+  config.jsonc              CLI設定（リスケRisuke）
+  entities/                 標準User＋7種類の草案
+  functions/line-webhook/   現行のLINE疎通用関数
+test/                       現行関数のテスト
+docs/
+  spec/                     現行仕様・ADR・契約
+  dev/                      手順・検証結果
+  archive/                  過去仕様・環境操作の記録
+.agents/                    Base44公式開発スキル
+~~~
 
-受入条件（草案§10・ログ仕様§9より）：
-- 架空データから取得相当→正規化→計算→保存を同じ run_id で追える。
-- 今日と除外日が候補に出ず、同点は近い日順。正常0件は reason_code=NO_CANDIDATES で表す。
-- 未取得と空きを区別する。計算成功と送信失敗を分離する。
-- 固定入力で各モジュールを単独実行できる。
+キュー・実行担当・日時／調整アダプターの具体配置は基盤・契約の判断後に決め、図を更新する。サーバー専用処理はブラウザーへ混入しない境界に置く。
 
-## 5. ディレクトリ構成
+## 6 実装・検証へ進む条件
 
-```
-src/
-├── routes/                     # 画面（デザイン確定後に実装）
-├── components/
-├── lib/
-│   ├── modules/                # ★計算コア（純関数・DB非依存）
-│   │   ├── normalize.js        # normalize stage
-│   │   ├── busyness.js        # calculate stage
-│   │   └── recommend.js        # recommend stage
-│   ├── adapters/               # ★外部接続の交換口
-│   │   ├── calendar-mock.js   # fetch stage（モック）
-│   │   └── store.server.js    # persist / publish stage
-│   ├── update.server.js        # M02 更新制御（run・stage管理）
-│   └── server-fns.js          # 画面用API（Phase 1では検証用のみ）
-├── mock/seed.json              # 仮データ原本（Git管理）
-base44/entities/                # 標準User + 7エンティティ
-```
+[判断待ち一覧](docs/spec/decisions.md)の対象項目を相談し、[確認リスト](docs/spec/checks.md)の期待値を確定する。製品機能の実装開始条件であり、LINE疎通用関数の検証結果は [開発記録](docs/dev/line-deploy-test.md) に分ける。
 
-## 6. モジュール契約（固定・変更時は承認を要する）
 
-計算コアの入出力契約。シグネチャ・不変条件の変更は承認後にのみ行う。
+## 7 LINE拡張の境界
 
-### 6.1 モジュール入出力
+カレンダー更新時に完成した結果からWebUIの共有用部分を画像化して保存する。画像準備と計算成功は別に記録し、画像失敗で保存済み計算結果を消さない。＠リスケは保存済み同一版の画像・候補からカードと「もっと見る」を作る。Google再取得・再計算・画像生成はLINE依頼では行わない。
 
-| モジュール（ファイル） | 入力 | 出力 | 不変条件 |
-|---|---|---|---|
-| fetchFixture (calendar-mock.js) | fixture名 | { sourceRevision, timezone, offsetMinutes, range, events[] } | eventsの要素は正規化前イベント形式に従う |
-| normalize (normalize.js) | rawEvents（正規化前イベント形式の配列） | { events, stats: {received, valid, excluded} } | cancelled除外・provider_event_id重複除外・時刻整合検証 |
-| calculateDaily (busyness.js) | { events, dates, offsetMinutes, activityWindow } | DailyAvailability[] | datesに含まれない日は出力しない（未取得と空きの区別） |
-| calculateHourly (busyness.js) | 同上 | HourlyAvailability[] | 60分区切り・活動時間の端は短縮 |
-| select (recommend.js) | { daily, today, excludedDates, maxCandidates } | { candidateState, candidates[] } | 最大3件・今日/除外日を外す・同点は近い日順 |
+カード生成時に同じsource_snapshot_idを固定し、同時更新があっても画像・説明・候補・共有ページを混在させない。画像未準備・日付経過・設定変更時の扱い、画像保存先・参照項目はP13。文面編集はP14。仕様・カード項目は[LINE仕様](docs/spec/line.md)を参照。
 
-### 6.2 正規化イベント形式とGoogle Calendarの対応
 
-| 内部項目 | Google Calendar Events | 変換規則 |
-|---|---|---|
-| kind | start/end の形状 | dateTimeがあれば timed、dateのみなら all_day |
-| provider_event_id | id | そのまま |
-| starts_at / ends_at | start.dateTime / end.dateTime | RFC3339（オフセット含む）をそのまま |
-| start_date / end_date_exclusive | start.date / end.date | 終了日は排他的のまま保持 |
-| status | status | 省略時はconfirmed（Google既定値）。confirmed/tentativeを保持、cancelledは除外 |
-| transparency | transparency | 省略時はopaque |
-| event_type | eventType | 省略時はdefault |
-| participation_status | attendees[].responseStatus | 本人のresponseStatus。attendeesなし（本人単独の予定）はacceptedとする案（未確認事項・要合議） |
+## 8 LINE疎通用Base44関数（2026-10-18追加）
 
-### 6.3 集計規則（多忙とみなす条件）
+製品本体の予定取得・キュー・共有とは独立した、定型返信だけの疎通用実装。
+`base44/functions/line-webhook/entry.js` が公開受付、`handler.js` が署名検証・判定・返信を担当する。
+旧PC常駐BotはBase44版への移行に伴い撤去。経緯はdocs/archive/local-line/へ、秘密はGit管理外の.env.line.localへ保管する。
 
-status が confirmed または tentative × transparency ≠ transparent × participation_status = accepted × event_type ≠ workingLocation。
+~~~mermaid
+classDiagram
+    class Base44LineEntry {
+        +handle(request) Response
+    }
+    class LineWebhookHandler {
+        +createWebhookHandler(dependencies) Handler
+        +verifySignature(bytes, signature, secret) bool
+        +replyFor(event) Messages
+    }
+    class Base44Secrets {
+        +get(name) Secret
+    }
+    class LineReplyAPI {
+        +reply(replyToken, messages)
+    }
+    Base44LineEntry --> LineWebhookHandler
+    Base44LineEntry --> Base44Secrets : ハンドラ内で取得
+    LineWebhookHandler --> LineReplyAPI : 署名とキーワード確認後
+~~~
 
-### 6.4 契約検証
+GETは秘密情報を使わない稼働確認。POSTはLINE署名を必須とし、秘密情報が未設定なら503で停止する。
+署名はJSON解析前の本文バイト列で検証する。本文上限1MiB、イベント上限100件。
+ログは自前のrequest_id・段階・件数・安全な原因コードのみで、本文・ヘッダー・秘密を出力しない。
+重複抑止は同一インスタンス内の直近1000件のみ。再起動・複数インスタンスをまたぐ保証はない。
+送信の受理不明はLINE_DELIVERY_UNKNOWNとし、同一インスタンスでは自動再送しない。
+DB・製品のOperationRun・本人連携・Google・共有権限・耐久キューには未接続。
+テストとデプロイの手順は [開発手順](docs/dev/README.md) を参照。
 
-src/mock/seed.json の固定フィクスチャが契約検証用の正本。モジュール変更時は全フィクスチャで期待値が崩れないことを確認する。
+## 9 プロジェクトの配置
 
-## 7. 未決・後回し
+~~~mermaid
+classDiagram
+    class RisukeProject
+    class WebApp {
+        <<src>>
+    }
+    class Base44Backend {
+        <<base44>>
+    }
+    class LocalTests {
+        <<test>>
+    }
+    class Specifications {
+        <<docs/spec>>
+    }
+    class Development {
+        <<docs/dev>>
+    }
+    class History {
+        <<docs/archive>>
+    }
+    RisukeProject *-- WebApp
+    RisukeProject *-- Base44Backend
+    RisukeProject *-- LocalTests
+    RisukeProject *-- Specifications
+    RisukeProject *-- Development
+    RisukeProject *-- History
+    LocalTests ..> Base44Backend : 模擬通信で検証
+~~~
 
-- フロントデザイン：確定後に実装。
-- LINE実送信・共有リンク・本人連携方式・秘密の保管先：Phase 3。
-- Google実API接続：テスト利用者1人での接続検証は別途。
-- 編集値の粒度・再取得時の調整維持・終日合成・排他制御の接続検証（D07相当）。
-- participation_status の本人特定方法（attendees内のself・organizer優先）と、tentative回答の多忙扱い。
+表示名はリスケRisuke、package.jsonとWranglerの内部名はrisuke。アプリIDとWebhook URLは変更しない。

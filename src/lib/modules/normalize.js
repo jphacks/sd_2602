@@ -1,6 +1,6 @@
 // M04 EventNormalizer（normalize stage）
 // 純関数：DB・外部API・時計に依存しない。固定入力で単独実行できる。
-// 入力のイベント形式は CalendarSource.events と同一（docs/schedule-state-and-schema.md §5）。
+// 入力のイベント形式は CalendarSource.events と同一（docs/spec/schema.md §5）。
 
 export function normalize(rawEvents) {
   const stats = { received: rawEvents.length, valid: 0, excluded: 0 };

@@ -139,3 +139,11 @@ const { messages, sendMessage, isLoading } = useChat({
 - `/api/apps/**`, `/api/app-logs/**` and `/ws-user-apps/**` belong to the Base44 platform API — never define routes under them.
 - Prefer the Base44 CLI (`base44 dev`, `base44 deploy`, `base44 secrets set`) over adding npm scripts for Base44 tasks.
 - Run `npm run lint` before finishing code changes. Write JavaScript/JSX only — no `.ts`/`.tsx` files and no type annotations (the generated `src/routeTree.gen.ts` is the sole exception and is never hand-edited).
+
+## リスケRisukeの配置
+
+- Display name: リスケRisuke. Internal package/Worker name: risuke. Keep the folder sd_2602, linked app id and webhook URL.
+- Current specs: docs/spec/index.md. Development/deployment: docs/dev/README.md. Historical material: docs/archive/README.md.
+- Current LINE function: base44/functions/line-webhook/entry.js and handler.js. Tests: node --test test/line-webhook.test.js.
+- The old line-schedule-bot directory was retired. Do not restore the PC server/tunnel workflow as the current deployment path.
+- .env.line.local is a local secret backup, ignored by Git. Never print or commit its contents.
