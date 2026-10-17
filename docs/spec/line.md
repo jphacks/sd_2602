@@ -78,3 +78,12 @@ Bot側の自動組立を基本案とし、Flex Message等で実現する具体�
 - [機能一覧](features.md)、[権限表](access.md)、[ログ仕様](logs.md)、[判断待ち](decisions.md)
 - [Flex Messageの構成](https://developers.line.biz/en/docs/messaging-api/flex-message-elements)
 - [メッセージ・URLアクション](https://developers.line.biz/en/reference/messaging-api/nojs/#action-objects)
+
+## 画像テストとして承認した範囲（2026-10-18）
+
+添付の月間画像1枚を使うFlexカルーセル（仮候補3枚＋もっと見る1枚）を実装する。
+年月・予定時刻を画像から推測せず、候補・時間帯はテスト用の固定値と明記。
+「もっと見る」は仮URLのみで、リンク先ページは作らないことを利用者が承認した。
+画像はBase44関数の固定公開GETで配信し、カードと同じimage-demo-v1で参照する。
+この限定テストはP07/P13/P14の製品本体の本人対応・許可・期限・保存方式を確定するものではない。
+手順・検証結果は [画像カードテスト](../dev/line-card-test.md) を参照。

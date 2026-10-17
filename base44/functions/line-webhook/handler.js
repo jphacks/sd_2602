@@ -1,12 +1,13 @@
 // Web-standard handler: the same code runs on Base44 and in Node's local tests.
-export const RESPONSE_TEXT = "リスケBotです。受信できました。";
+import { buildDemoMessages, DEMO_VERSION, DEMO_SNAPSHOT } from "./cards.js";
+import { demoImageResponse } from "./image.js";
 const KEYWORDS = new Set(["＠リスケ", "@リスケ"]);
 const MAX_BYTES = 1024 * 1024;
 
 export function replyFor(event) {
   if (event?.type !== "message" || event.message?.type !== "text") return [];
   if (typeof event.message.text !== "string" || !KEYWORDS.has(event.message.text.trim())) return [];
-  return [{ type: "text", text: RESPONSE_TEXT }];
+  return buildDemoMessages();
 }
 
 export async function verifySignature(body, signature, secret) {
@@ -83,8 +84,12 @@ export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = conso
   const seen = new Set();
   return async function handleWebhook(request) {
     const headers = { "Cache-Control": "no-store" };
-    if (request.method === "GET") return Response.json({ ok: true, service: "risuke-line" }, { headers });
-    if (request.method !== "POST") return new Response(null, { status: 405, headers: { ...headers, Allow: "GET, POST" } });
+    if (request.method === "GET" || request.method === "HEAD") {
+      const image = demoImageResponse(request);
+      if (image) return image;
+      if (request.method === "GET") return Response.json({ ok: true, service: "risuke-line" }, { headers });
+    }
+    if (request.method !== "POST") return new Response(null, { status: 405, headers: { ...headers, Allow: "GET, HEAD, POST" } });
     const requestId = crypto.randomUUID();
     const record = (event, extra = {}) => log(JSON.stringify({ event, request_id: requestId, ...extra }));
     try {
@@ -109,6 +114,7 @@ export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = conso
         if (eventId) seen.add(eventId);
         try {
           record("keyword_matched");
+          record("cards_prepared", { fixture_version: DEMO_VERSION, item_id: `${DEMO_VERSION}:${requestId}`, candidate_count: DEMO_SNAPSHOT.candidates.length, card_count: messages[0].contents.contents.length });
           await sendReply(event.replyToken, messages, token, fetchImpl);
           record("reply_sent");
         } catch (error) {

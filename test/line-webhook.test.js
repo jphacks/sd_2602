@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
-import { createWebhookHandler, RESPONSE_TEXT } from "../base44/functions/line-webhook/handler.js";
+import { createWebhookHandler } from "../base44/functions/line-webhook/handler.js";
 
 const secret = "fake-channel-secret";
 const keywordEvent = (text = "＠リスケ", id = "fake-event") => ({
@@ -71,7 +71,9 @@ test("both keywords reply once and duplicates within an instance are ignored", a
     assert.equal((await handle(post(body))).status, 200);
   }
   assert.equal(replies.length, 2);
-  assert.deepEqual(replies[0].messages, [{ type: "text", text: RESPONSE_TEXT }]);
+  assert.equal(replies[0].messages[0].type, "flex");
+  assert.equal(replies[0].messages[0].contents.contents.length, 4);
+  assert.ok(logs.some((line) => JSON.parse(line).event === "cards_prepared"));
   assert.equal(replies[0].url, "https://api.line.me/v2/bot/message/reply");
   for (const forbidden of ["fake-channel-secret", "fake-access-token", "fake-reply-token", "＠リスケ"]) {
     assert.equal(logs.join("\n").includes(forbidden), false);

@@ -18,19 +18,19 @@ npx base44 dev
 ## 2 テストとコード検査
 
 ~~~bash
-node --test test/line-webhook.test.js
+node --test test/line-webhook.test.js test/line-cards.test.js
 npm run lint
 ~~~
 
 LINE返信は模擬通信で確認し、テストから実LINEへ送信しません。
-旧ローカルBotの4テストは撤去済み。現行Base44関数の10テストを実行します。
+旧ローカルBotの4テストは撤去済み。画像テストを含む現行Base44関数の15テストを実行します。
 
 ## 3 LINE関数の編集・デプロイ
 
 | ファイル | 役割 |
 | --- | --- |
 | [entry.js](../../base44/functions/line-webhook/entry.js) | Base44のHTTP受付・Secrets接続 |
-| [handler.js](../../base44/functions/line-webhook/handler.js) | 署名検証・キーワード判定・定型返信 |
+| [handler.js](../../base44/functions/line-webhook/handler.js) | 署名検証・キーワード判定・Flexカード返信 |
 | [line-webhook.test.js](../../test/line-webhook.test.js) | 模擬イベントによる検証 |
 
 ~~~bash
@@ -47,7 +47,7 @@ GETは稼働確認で200、署名なしPOSTは401。Secrets未設定の署名付
 
 Base44の対象アプリのSecretsに `LINE_CHANNEL_SECRET` と `LINE_CHANNEL_ACCESS_TOKEN` を登録します。
 LINE Developersの対象Messaging APIチャネルでWebhook URLを上記公開受付に設定し、VerifyとUse webhookを確認します。
-個別トークへ `＠リスケ` または `@リスケ` を送ると「リスケBotです。受信できました。」と返信する実装です。
+個別トークへ `＠リスケ` または `@リスケ` を送ると、テスト候補3枚ともっと見る1枚の画像付きカードを返信します。実予定ではなく仮データです。
 PCのサーバーやトンネルは使いません。
 
 旧Botの `.env` はルートの `.env.line.local` に保管しました。秘密を含むためGitへ追加しません。
@@ -80,3 +80,6 @@ buildはアプリIDを注入します。全体deployはエンティティ等も�
 - [LINE公開時の検証結果](line-deploy-test.md)
 - [整理と名称変更の記録](cleanup.md)
 - [現行仕様](../spec/index.md)
+
+
+画像と仮データの編集・確認は [LINE画像カードテスト](line-card-test.md) を参照してください。もっと見るのリンク先は未実装です。

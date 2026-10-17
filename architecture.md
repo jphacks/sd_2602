@@ -254,7 +254,7 @@ docs/
 
 ## 8 LINE疎通用Base44関数（2026-10-18追加）
 
-製品本体の予定取得・キュー・共有とは独立した、定型返信だけの疎通用実装。
+製品本体の予定取得・キュー・共有とは独立した、画像と仮候補によるFlexカードのテスト用実装。
 `base44/functions/line-webhook/entry.js` が公開受付、`handler.js` が署名検証・判定・返信を担当する。
 旧PC常駐BotはBase44版への移行に伴い撤去。経緯はdocs/archive/local-line/へ、秘密はGit管理外の.env.line.localへ保管する。
 
@@ -268,6 +268,12 @@ classDiagram
         +verifySignature(bytes, signature, secret) bool
         +replyFor(event) Messages
     }
+    class DemoCardBuilder {
+        +buildDemoMessages(snapshot) Messages
+    }
+    class DemoImage {
+        +demoImageResponse(request) Response
+    }
     class Base44Secrets {
         +get(name) Secret
     }
@@ -275,6 +281,8 @@ classDiagram
         +reply(replyToken, messages)
     }
     Base44LineEntry --> LineWebhookHandler
+    LineWebhookHandler --> DemoCardBuilder : テスト候補から生成
+    LineWebhookHandler --> DemoImage : 公開画像のGETとHEAD
     Base44LineEntry --> Base44Secrets : ハンドラ内で取得
     LineWebhookHandler --> LineReplyAPI : 署名とキーワード確認後
 ~~~
@@ -320,3 +328,12 @@ classDiagram
 ~~~
 
 表示名はリスケRisuke、package.jsonとWranglerの内部名はrisuke。アプリIDとWebhook URLは変更しない。
+
+## 10 添付画像のLINEカードテスト
+
+cards.jsは固定版image-demo-v1の仮候補から最大3枚ともっと見る1枚を組み立てる純関数。
+image.jsとimage-data.jsは承認された添付PNGのみをGET/HEADで配信する。
+候補画像は全カードで共用、提案ボタンはmessageアクション、もっと見るはexample.comの仮URI。
+テスト画像・候補を実データと表示しない。既存Webhook URL・署名確認・返信APIは維持する。
+本人連携・共有許可・期限・本番用の画像保存と固定共有ページは未実装。
+手順は [LINE画像カードテスト](docs/dev/line-card-test.md) を参照。
