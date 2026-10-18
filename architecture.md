@@ -449,3 +449,17 @@ classDiagram
 ```
 
 Timelineは表示専用で選出計算を行わない。MessageComposerはPC文面欄とスマホの固定バー・連絡文ダイアログを同じ選択状態で表示する。レスポンシブ表示はresponsive.cssへ分離。
+
+## 11. 認証付き接続入口と公開確認
+
+```mermaid
+classDiagram
+  AuthGate --> AccountPage
+  AccountPage --> ConnectionStatus
+  ConnectionStatus --> RequireUser
+  ConnectionStatus --> ConnectorConfig
+  ConnectionStatus --> CurrentUserConnector
+  SiteVerifier --> RendererMarker
+```
+
+/me と /me/pair は固定テスト専用。/account は認証後に接続状態だけを返し、トークンは返さない。Google実取得・保存・LINE連携はまだ接続しない。公開確認はHTTP200だけでなく本アプリ固有マーカーを見る。最新合意はdocs/spec/current.md。

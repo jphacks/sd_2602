@@ -1,17 +1,18 @@
-import { select } from "../modules/recommend.js";
-
-export function recommendForDetails(daily, details, today, excludedDates = []) {
-  const result = select(daily, { today, excludedDates, maxCandidates: 3 });
-  return {
-    ...result,
-    candidates: result.candidates.map((candidate) => ({
-      ...candidate,
-      reasons: details.find((day) => day.date === candidate.date).allDayCount
-        ? [
-            "多忙度" + Math.round(candidate.busyRatio * 100) + "%",
-            "終日予定あり・空き時間は要確認",
-          ]
-        : candidate.reasons,
-    })),
-  };
+import { selectPair } from "../pair/select.js";
+// Solo and pair use the same union/gap ranking; never expose the numeric score.
+export function recommendForDetails(
+  daily,
+  details,
+  today,
+  excludedDates = [],
+  window = { startMinute: 540, endMinute: 1320 },
+) {
+  const empty = details.map((d) => ({ ...d, allDayCount: 0, periods: [] }));
+  const dates = selectPair(details, empty, { today, excludedDates, window });
+  const candidates = dates.map((date) => ({
+    date,
+    busyRatio: daily.find((d) => d.date === date).busyRatio,
+    reasons: ["活動時間内に連続した空きあり"],
+  }));
+  return { candidateState: candidates.length ? "valid" : "empty", candidates };
 }

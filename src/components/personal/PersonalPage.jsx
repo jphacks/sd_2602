@@ -10,7 +10,13 @@ export function PersonalPage({ data }) {
   const day = data.details.find((d) => d.date === selectedDate);
   const candidates = useMemo(
     () =>
-      recommendForDetails(data.daily, data.details, data.today, excluded)
+      recommendForDetails(
+        data.daily,
+        data.details,
+        data.today,
+        excluded,
+        data.activityWindow,
+      )
         .candidates.slice()
         .sort((a, b) => a.date.localeCompare(b.date)),
     [data, excluded],

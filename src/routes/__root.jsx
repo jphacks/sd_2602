@@ -1,4 +1,9 @@
-import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from "@tanstack/react-router";
 import { DefaultCatchBoundary } from "@/components/DefaultCatchBoundary";
 import { NotFound } from "@/components/NotFound";
 import { Toaster } from "@/components/ui/sonner";
@@ -11,14 +16,17 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
+      { name: "risuke-renderer", content: "tanstack-start-v1" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "リスケRisuke" },
-      { name: "description", content: "予定から誘いやすい日を見つけ、LINEで提案するスケジュール調整支援アプリ。" },
+      {
+        name: "description",
+        content:
+          "予定から誘いやすい日を見つけ、LINEで提案するスケジュール調整支援アプリ。",
+      },
     ],
     // No icon link: the platform adds the app's logo when serving.
-    links: [
-      { rel: "stylesheet", href: appCss },
-    ],
+    links: [{ rel: "stylesheet", href: appCss }],
   }),
   errorComponent: DefaultCatchBoundary,
   notFoundComponent: () => <NotFound />,

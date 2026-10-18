@@ -73,3 +73,15 @@ export function shareMessage(
     .join("\n")
     .trim();
 }
+
+// A selection is a subset of the server-approved candidates, never arbitrary dates.
+export function selectShare(share, dates) {
+  const selected = new Set(dates);
+  return {
+    ...share,
+    candidates: share.candidates
+      .filter((c) => selected.has(c.date))
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date)),
+  };
+}

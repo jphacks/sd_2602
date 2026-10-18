@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { shareMessage, shortSchedule } from "@/lib/pair/share";
+import { shareMessage, shortSchedule, selectShare } from "@/lib/pair/share";
 import { dateLabel } from "@/lib/personal/dates";
 import { updatedLabel } from "@/lib/pair/presentation";
 import { MessageComposer } from "@/components/personal/MessageComposer";
@@ -16,6 +16,12 @@ export function PairPage({ share }) {
     [edited, setEdited] = useState(null),
     [status, setStatus] = useState(""),
     [updating, setUpdating] = useState(false);
+  const selectedShare = useMemo(
+    () => selectShare(share, selected),
+    [share, selected],
+  );
+  const selectionKey =
+    share.version + ":" + selectedShare.candidates.map((c) => c.date).join(",");
   const day = share.days.find((d) => d.date === selectedDate),
     candidate = share.candidates.find((c) => c.date === selectedDate);
   const message =
@@ -104,7 +110,15 @@ export function PairPage({ share }) {
       )}
       <details className="image-disclosure">
         <summary>共有カードのプレビュー・画像保存</summary>
-        <ShareCard share={share} />
+        {selected.length ? (
+          <ShareCard
+            key={selectionKey}
+            share={selectedShare}
+            selectionKey={selectionKey}
+          />
+        ) : (
+          <p className="fine-print">共有する候補日を選択してください。</p>
+        )}
       </details>
       <details className="test-info">
         <summary>テストデータ・連携について</summary>

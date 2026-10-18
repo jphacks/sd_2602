@@ -11,12 +11,15 @@ export function ConnectionsPage() {
       <section className="personal-panel connection-card">
         <div className="section-heading">
           <h2>Google Calendar</h2>
-          <span className="status-pill">未連携・今後実装予定</span>
+          <span className="status-pill">実接続の確認前</span>
         </div>
         <p>
-          Google
-          APIは未設定です。認証・認可やカレンダーへのアクセスは行いません。現在はログイン不要のテスト表示です。
+          GoogleのOAuth設定は登録済みとのご申告があります。利用者ごとの接続にはBase44のConnector
+          IDが必要です。テスト画面はログイン不要で、実予定を読み取りません。
         </p>
+        <Link className="primary-button" to="/account">
+          ログインして接続状態を確認
+        </Link>
         <ol className="connection-steps">
           <li>
             <b>1</b>

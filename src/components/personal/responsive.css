@@ -894,3 +894,15 @@
     font-size: 0.73rem;
   }
 }
+
+.mobile-hours-note {
+  display: none;
+}
+@media (max-width: 600px) {
+  .mobile-hours-note {
+    display: block;
+    font-size: 0.68rem;
+    color: #64748b;
+    margin: 8px 0 !important;
+  }
+}

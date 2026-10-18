@@ -21,7 +21,13 @@ export function buildSchedule(input, today, excludedDates = []) {
     detailFor(day, events, hourly, input.activityWindow),
   );
   return {
-    ...recommendForDetails(daily, details, today, excludedDates),
+    ...recommendForDetails(
+      daily,
+      details,
+      today,
+      excludedDates,
+      input.activityWindow,
+    ),
     daily,
     details,
   };

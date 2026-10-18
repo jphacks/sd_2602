@@ -91,3 +91,8 @@ buildはアプリIDを注入します。このTanStack Start構成はSSR Worker�
 [個人ページの検証・制限](personal-page.md)を参照。Googleは開発予定の表示のみです。
 
 - [2人リスケの比較・候補・画像保存（固定テスト）](pair-page.md)
+
+## 公開完了の判定（更新）
+BASE44_DEPLOYMENTS_API=1はCLI内で確認した経路だが、現アプリで本番配信まで有効とは確認できていない。現時点で成功手順として再デプロイしない。Workerのアップロード成功、公開ドメインへの割当、実画面の応答を別々に確認する。node scripts/verify-site.mjs <origin> は /me と /me/pair のHTTP200に加えて本アプリ固有の描画マーカーを確認し、Base44の汎用案内ページを成功扱いしない。
+
+Google接続入口は /account。Base44のApp user connector IDをGOOGLE_CALENDAR_CONNECTOR_IDとしてサーバー設定へ登録する。Google OAuthクライアントIDやシークレットをこの項目に入れない。設定未確認のため現在は登録・実認可していない。

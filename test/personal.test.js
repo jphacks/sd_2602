@@ -155,7 +155,7 @@ test("monthly summary, daily detail and hourly data are computed from the same e
   }
 });
 
-test("all-day candidate explanations never invent free time from the six-hour equivalent", () => {
+test("solo excludes all-day dates from candidates without changing daily busyness", () => {
   const fixture = readPersonalFixture(seed, today);
   const input = {
     ...fixture,
@@ -168,9 +168,9 @@ test("all-day candidate explanations never invent free time from the six-hour eq
     ],
     dates: ["2026-10-19"],
   };
-  const candidate = buildSchedule(input, today).candidates[0];
-  assert.ok(candidate.reasons.includes("終日予定あり・空き時間は要確認"));
-  assert.ok(!candidate.reasons.some((r) => r.includes("空き7時間")));
+  const result = buildSchedule(input, today);
+  assert.deepEqual(result.candidates, []);
+  assert.equal(result.daily[0].busyMinutes, 360);
 });
 
 test("demo reports its source honestly and logs only bounded metadata, without writing or fetching", () => {

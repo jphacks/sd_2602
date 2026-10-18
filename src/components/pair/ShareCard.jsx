@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { calendarPng } from "@/lib/pair/image";
 import { shortSchedule } from "@/lib/pair/share";
 import { dateLabel } from "@/lib/personal/dates";
-export function ShareCard({ share }) {
+export function ShareCard({ share, selectionKey = share.version }) {
   const [image, setImage] = useState(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -25,7 +25,7 @@ export function ShareCard({ share }) {
       active = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [share]);
+  }, [share, selectionKey]);
   return (
     <section className="personal-panel">
       <div className="pair-share-card">
@@ -49,7 +49,13 @@ export function ShareCard({ share }) {
         <a
           className="primary-button pair-download"
           href={image}
-          download={"risuke-calendar-" + share.version + ".png"}
+          download={
+            "risuke-calendar-" +
+            share.version +
+            "-" +
+            share.candidates.map((c) => c.date).join("_") +
+            ".png"
+          }
         >
           カード用の月間画像を保存
         </a>

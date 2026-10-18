@@ -3,6 +3,10 @@ import { clock } from "@/lib/personal/dates";
 export function Timeline({ people, window }) {
   return (
     <div className="schedule-timeline">
+      <p className="mobile-hours-note">
+        予定の表示対象：{clock(window.startMinute)}〜{clock(window.endMinute)}
+        。対象外の時間は未評価です。
+      </p>
       <div className="timeline-lanes" style={{ "--people": people.length }}>
         <div className="lane-hours">
           {Array.from({ length: 20 }, (_, i) => (
