@@ -114,3 +114,5 @@ Google認証導線追加：48件のテスト、Lint、Base44ビルド成功。/l
 2026-10-18 Calendar取得の通信修正：本人ログインとCalendar接続情報の取得は実プレビューで確認済み。その後の予定取得がGOOGLE_NETWORKで失敗。Workerのfetchはredirect:error非対応でTypeErrorを再現したためmanualへ変更し、3xxは追従せずGOOGLE_REDIRECTで中止する。15秒タイムアウトはGOOGLE_TIMEOUT、その他はGOOGLE_NETWORKとして区別。転送先URLや認可トークンはログ・画面へ返さない。認可設定・演算・DB・共有は変更しない。実予定の読込は修正同期後に再検証。
 
 通信修正検証：49件のテスト、Lint、Base44ビルド成功。修正したevents.jsをWorkerで直接実行し、非対応redirectのTypeErrorが消えGoogleのHTTP401応答を正しくGOOGLE_RECONNECTへ分類することを確認（テスト用の無効な認可文字列で実行、本人トークン不使用）。
+
+2026-10-18 最終実接続確認：通信修正1d7e8dcを同期し、Base44側の独立した管理画面追加18e4ce3を保持した通常マージ3f9a3fcも同期。49件テスト・Lint・結合ビルド成功。ホストプレビュー/accountで本人の接続済みCalendarから予定を読込し「取得済み」を確認。今日から31日分の月一覧、日別詳細への切替、候補3件の表示まで確認した。生予定・トークンを記録せず、DB保存・相手共有・完成版公開は実施していない。過去の未確認記録に対し、本記録を最新の検証状態とする。
