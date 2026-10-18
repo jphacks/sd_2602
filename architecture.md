@@ -507,3 +507,34 @@ classDiagram
 ```
 
 復帰目印はsessionStorageの日時と固定/accountだけで、認可・本人確認の証明ではない。接続成功はサーバーの本人接続トークンの存在で判断。state生成・OAuth交換・ポップアップ通信はSDK/Base44に委ねる。
+
+
+## 更新時に準備するLINEカード（架空データ実装）
+
+```mermaid
+classDiagram
+ PrepareDemoScript --> PairSelector
+ PrepareDemoScript --> PrepareCard
+ PrepareCard --> CalendarPngRasterizer
+ PrepareCard --> PreparedStore : saveImage then saveResult
+ PreparedBundle --> CardPreview
+ PreparedBundle --> PreparedDemoWebhook
+ PreparedDemoWebhook --> PreparedMessages
+ PreparedDemoWebhook --> ImageResponse
+```
+
+現合意：更新時に双方の保存済み版から調整案とPNGを準備・固定保存。Botは準備済み結果を検証しカードを組み立てる。Webは同じ結果版。初回はDB接続を除外し、架空データをprepared.jsonへ事前生成するデモ。Google読込からの自動保存・実DB・同意/LINE紐付け・実データのオンライン画像保存は未接続。描画ルールは既存色分けを再利用し、DOM不要のPNGエンコーダーで数字/色/星を生成。新規/me/card-previewと新規line-card-demo関数で確認。既存LINE疎通Webhookは既定動作を維持。配信停止は対象最終日の7日後の終了時。DB未接続のため旧版保持、複数インスタンス排除、撤回、自動削除は保証しない。
+
+## 最小の本人用保存（作業ブランチ）
+
+~~~mermaid
+classDiagram
+  AccountPage --> AccountServer : authenticated RPC
+  AccountServer --> GoogleService : manual fetch
+  GoogleService --> ScheduleStore : complete result only
+  AccountServer --> ScheduleStore : read / exclusions
+  ScheduleStore --> UserProfile : owner settings and latest pointer
+  ScheduleStore --> CalendarSource : private events
+  ScheduleStore --> AvailabilitySnapshot : immutable complete view
+~~~
+取得・計算・保存がすべて成功してから最新参照を切替。3エンティティの汎用CRUDはRLSで拒否し、本人認証したサーバー関数のみ所有者を限定してアクセスする。自動更新・2人実共有は追加しない。

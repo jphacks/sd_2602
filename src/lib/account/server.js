@@ -1,3 +1,4 @@
+import { exclusionsSchema } from "../storage/schedule.js";
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { requireUser } from "@/lib/auth-middleware";
@@ -42,10 +43,48 @@ export const readGoogleSchedule = createServerFn({ method: "POST" })
           context
             .getBase44()
             .asServiceRole.connectors.getCurrentAppUserConnection(id),
+        persist: async (input) => {
+          const { saveSchedule } = await import("../storage/schedule.js");
+          return saveSchedule({
+            ...input,
+            entities: context.getBase44().asServiceRole.entities,
+            owner: context.user.id,
+          });
+        },
         requestId: crypto.randomUUID(),
         log: (entry) => console.info(JSON.stringify(entry)),
       });
     } catch {
       return { state: "failed", code: "CALENDAR_LOAD_FAILED" };
+    }
+  });
+
+export const getSavedSchedule = createServerFn({ method: "GET" })
+  .middleware([privateResponse, requireUser])
+  .handler(async ({ context }) => {
+    try {
+      const { readSavedSchedule } = await import("../storage/schedule.js");
+      return await readSavedSchedule({
+        entities: context.getBase44().asServiceRole.entities,
+        owner: context.user.id,
+      });
+    } catch {
+      return { state: "failed", code: "SAVED_SCHEDULE_UNAVAILABLE" };
+    }
+  });
+
+export const updateExclusions = createServerFn({ method: "POST" })
+  .middleware([privateResponse, requireUser])
+  .validator((input) => exclusionsSchema.parse(input))
+  .handler(async ({ context, data }) => {
+    try {
+      const { saveExclusions } = await import("../storage/schedule.js");
+      return await saveExclusions({
+        ...data,
+        entities: context.getBase44().asServiceRole.entities,
+        owner: context.user.id,
+      });
+    } catch {
+      return { state: "failed", code: "SETTINGS_SAVE_FAILED" };
     }
   });

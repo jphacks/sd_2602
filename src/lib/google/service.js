@@ -12,6 +12,7 @@ export async function loadGoogleSchedule({
   fetcher,
   log = () => {},
   requestId,
+  persist,
 }) {
   const started = Date.now();
   const emit = (stage, extra = {}) =>
@@ -52,7 +53,7 @@ export async function loadGoogleSchedule({
       candidate_count: schedule.candidates.length,
       duration_ms: Date.now() - started,
     });
-    return {
+    const result = {
       state: "ready",
       data: {
         ...schedule,
@@ -66,6 +67,17 @@ export async function loadGoogleSchedule({
         calculationVersion: "daily-all-day-360-v1",
       },
     };
+    if (persist) {
+      emit("saving");
+      try {
+        const saved = await persist({ events, data: result.data });
+        emit("saved");
+        return saved;
+      } catch {
+        throw new CalendarError("SCHEDULE_SAVE_FAILED");
+      }
+    }
+    return result;
   } catch (error) {
     const code =
       error instanceof CalendarError ? error.code : "CALENDAR_LOAD_FAILED";

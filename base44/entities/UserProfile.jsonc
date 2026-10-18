@@ -4,7 +4,7 @@
   "properties": {
     "owner_id": {
       "type": "string",
-      "description": "\u6240\u6709\u8005\u306e\u6a19\u6e96User id"
+      "description": "所有者の標準User id"
     },
     "timezone": {
       "type": "string"
@@ -45,7 +45,7 @@
     },
     "google_connection_ref": {
       "type": "string",
-      "description": "\u63a5\u7d9a\u306e\u53c2\u7167\u3002\u30a2\u30af\u30bb\u30b9\u30c8\u30fc\u30af\u30f3\u7b49\u306e\u79d8\u5bc6\u306f\u4fdd\u5b58\u3057\u306a\u3044"
+      "description": "接続の参照。アクセストークン等の秘密は保存しない"
     },
     "google_status": {
       "type": "string",
@@ -79,5 +79,11 @@
   "required": [
     "owner_id",
     "timezone"
-  ]
+  ],
+  "rls": {
+    "create": false,
+    "read": false,
+    "update": false,
+    "delete": false
+  }
 }

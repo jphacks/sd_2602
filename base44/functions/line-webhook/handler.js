@@ -79,13 +79,13 @@ async function sendReply(replyToken, messages, token, fetchImpl) {
   if (!response.ok) throw new HttpError(502, "LINE_REPLY_FAILED");
 }
 
-export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = console.log }) {
+export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = console.log, resolveMessages = replyFor, imageResponse = demoImageResponse, snapshotInfo = () => ({ fixture_version: DEMO_VERSION, candidate_count: DEMO_SNAPSHOT.candidates.length }) }) {
   // Best effort within ONE instance only. Not a durable deduplication guarantee.
   const seen = new Set();
   return async function handleWebhook(request) {
     const headers = { "Cache-Control": "no-store" };
     if (request.method === "GET" || request.method === "HEAD") {
-      const image = demoImageResponse(request);
+      const image = imageResponse(request);
       if (image) return image;
       if (request.method === "GET") return Response.json({ ok: true, service: "risuke-line" }, { headers });
     }
@@ -102,7 +102,7 @@ export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = conso
       const events = parseEvents(body);
       record("webhook_received", { event_count: events.length });
       for (const event of events) {
-        const messages = replyFor(event);
+        const messages = await resolveMessages(event);
         if (!messages.length || typeof event.replyToken !== "string" || !event.replyToken) continue;
         const eventId = typeof event.webhookEventId === "string" ? event.webhookEventId : null;
         if (eventId && seen.has(eventId)) {
@@ -114,7 +114,7 @@ export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = conso
         if (eventId) seen.add(eventId);
         try {
           record("keyword_matched");
-          record("cards_prepared", { fixture_version: DEMO_VERSION, item_id: `${DEMO_VERSION}:${requestId}`, candidate_count: DEMO_SNAPSHOT.candidates.length, card_count: messages[0].contents.contents.length });
+          record("cards_prepared", { ...snapshotInfo(), item_id: requestId, message_count: messages.length });
           await sendReply(event.replyToken, messages, token, fetchImpl);
           record("reply_sent");
         } catch (error) {

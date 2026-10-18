@@ -146,3 +146,9 @@ classDiagram
 ```
 
 /me/previewは匿名で利用できる固定データ専用経路。受け付けるのは3種類のscenarioのみ。実Connector・secret・DB・ネットワークへ接続しない。予定ありと0件はready、2ページ目失敗はfailedで部分結果なし。切替開始時に以前の結果を破棄。本人用/accountから自分の予定へ戻るリンクは/accountを維持し、2人比較はテストと明示。
+
+## 本人用保存RPC
+- getSavedSchedule(): requireUser、入力IDなし。empty / ready(data) / failed。Googleへアクセスしない。
+- readGoogleSchedule(): 全取得→演算→保存完了でready。保存失敗はSCHEDULE_SAVE_FAILED、途中結果を成功として返さない。
+- updateExclusions({excludedDates}): 最大31 ISO日付、保存版の範囲内のみ。owner_id / 最新参照等の自己申告なし。
+- 全応答no-store。生イベント・トークン・他人のデータを返さない。本人向けデータにsnapshotId / settingsVersion / fetchedAt / excludedDatesを付与。

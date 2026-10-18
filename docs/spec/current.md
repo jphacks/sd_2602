@@ -63,3 +63,25 @@
 2026-10-18 最終実接続確認：通信修正1d7e8dcを同期し、Base44側の独立した管理画面追加18e4ce3を保持した通常マージ3f9a3fcも同期。49件テスト・Lint・結合ビルド成功。ホストプレビュー/accountで本人の接続済みCalendarから予定を読込し「取得済み」を確認。今日から31日分の月一覧、日別詳細への切替、候補3件の表示まで確認した。生予定・トークンを記録せず、DB保存・相手共有・完成版公開は実施していない。過去の未確認記録に対し、本記録を最新の検証状態とする。
 
 2026-10-18 同期・入出力再確認：実装は92d5425までコミット・同期済みで作業ツリーに実装差分なし。49件テスト・Lint・Base44ビルド成功。Base44上の/me/pairで固定2人データのカレンダー・候補・共有文・月画像を確認。選択を別候補に切替えて旧本文が消え画像が更新されることを確認。実予定の/accountと匿名固定テスト経路の分離を維持。入出力形式・演算の変更、実2人共有、完成版公開は行っていない。詳細はdocs/dev/base44-preview-check.md。
+
+
+## 更新時に準備するLINEカード（架空データ実装）
+
+```mermaid
+classDiagram
+ PrepareDemoScript --> PairSelector
+ PrepareDemoScript --> PrepareCard
+ PrepareCard --> CalendarPngRasterizer
+ PrepareCard --> PreparedStore : saveImage then saveResult
+ PreparedBundle --> CardPreview
+ PreparedBundle --> PreparedDemoWebhook
+ PreparedDemoWebhook --> PreparedMessages
+ PreparedDemoWebhook --> ImageResponse
+```
+
+現合意：更新時に双方の保存済み版から調整案とPNGを準備・固定保存。Botは準備済み結果を検証しカードを組み立てる。Webは同じ結果版。初回はDB接続を除外し、架空データをprepared.jsonへ事前生成するデモ。Google読込からの自動保存・実DB・同意/LINE紐付け・実データのオンライン画像保存は未接続。描画ルールは既存色分けを再利用し、DOM不要のPNGエンコーダーで数字/色/星を生成。新規/me/card-previewと新規line-card-demo関数で確認。既存LINE疎通Webhookは既定動作を維持。配信停止は対象最終日の7日後の終了時。DB未接続のため旧版保持、複数インスタンス排除、撤回、自動削除は保証しない。
+
+## 最小保存の実装（codex/minimal-schedule-storage）
+本人用/accountのGoogle取得は、必要な予定情報と完成した表示結果を本人専用DBへ保存する。初回表示と明示再読込は保存済み完成版を使い、候補選択中の自動差替えはしない。取得日時を表示し、古さによる制限は設けない。除外日は本人設定へ保存する。活動時間09–22、日本時間、31日を固定し、任意の設定編集は追加しない。
+UserProfile / CalendarSource / AvailabilitySnapshotの3定義に直接CRUD拒否のRLSを追加。認証済みサーバー経由のみ利用する。途中保存失敗は前回完成版の参照を維持。DBトランザクション・同時実行の厳密な直列化は保証しない。重複プロフィールは処理停止する。未参照の途中レコードの自動削除、保存期間の自動制御は未実装。
+2人版は固定テストのまま。実2人版は双方の最新保存版を画面読込／明示更新時だけ参照し、取得日時を表示し、操作中は版を固定する方針。組・双方同意・LINE紐付けを省略して実共有へ接続しない。リモートスキーマ反映・実DB検証・完成版公開は別途確認。

@@ -160,3 +160,6 @@ WebUIで更新済みの共有用要素を画像化して保存し、その段階
 
 ## 最新共有仕様に必要な変更（未反映）
 既存hourly_publicを全日時間帯公開として使わない。比較組、2人の元snapshot参照、双方のpermission_version、候補日限定の時間帯、画像参照・描画版・保存状態が必要。Account Link用nonceのハッシュ・有効期限・使用状態も別管理する。PairとLinkRequest等の具体JSONC、RLS/FLS、重複制約の検証は後続で行い、現DBへ自動同期しない。
+
+## 最小保存の適用差分
+UserProfile / CalendarSource / AvailabilitySnapshotのみ本人用保存に接続。直接CRUDをRLSで全拒否し、requireUser付き関数がowner_idを認証結果から決める。AvailabilitySnapshotへ検証済みのview（日別詳細・時間帯を含む本人用表示）とfetched_atを追加。既存のdaily/candidates等を維持し、分単位の小数値を壊さないようbusy_minutes/active_minutesはnumberへ変更する。viewはサーバーのZodで許可項目だけを保存・再読込する。候補除外はProfileの現在値から投影し、保存済み完成版の予定や多忙度を変更しない。

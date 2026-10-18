@@ -71,10 +71,10 @@
             "format": "date"
           },
           "active_minutes": {
-            "type": "integer"
+            "type": "number"
           },
           "busy_minutes": {
-            "type": "integer"
+            "type": "number"
           },
           "busy_ratio": {
             "type": "number"
@@ -97,10 +97,10 @@
             "type": "string"
           },
           "active_minutes": {
-            "type": "integer"
+            "type": "number"
           },
           "busy_minutes": {
-            "type": "integer"
+            "type": "number"
           },
           "busy_ratio": {
             "type": "number"
@@ -150,6 +150,14 @@
     },
     "schema_version": {
       "type": "string"
+    },
+    "view": {
+      "type": "object",
+      "description": "Server-validated personal display DTO; no provider identities or text"
+    },
+    "fetched_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [
@@ -158,5 +166,11 @@
     "daily",
     "candidates",
     "candidate_state"
-  ]
+  ],
+  "rls": {
+    "create": false,
+    "read": false,
+    "update": false,
+    "delete": false
+  }
 }

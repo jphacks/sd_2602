@@ -3,7 +3,11 @@ import { useRouter } from "@tanstack/react-router";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useServerFn } from "@tanstack/react-start";
-import { readGoogleSchedule } from "@/lib/account/server";
+import {
+  getSavedSchedule,
+  updateExclusions,
+  readGoogleSchedule,
+} from "@/lib/account/server";
 import {
   startCalendarConnection,
   pendingCalendar,
@@ -21,15 +25,42 @@ const labels = {
   unavailable:
     "接続状態を確認できませんでした。設定や通信状態を確認して再試行してください。",
 };
-export function AccountPage({ status }) {
+export function AccountPage({ status, saved }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
-  const [schedule, setSchedule] = useState(null);
+  const [schedule, setSchedule] = useState(() =>
+    saved?.state === "ready" ? saved.data : null,
+  );
+  const readSaved = useServerFn(getSavedSchedule);
+  const writeExclusions = useServerFn(updateExclusions);
+  async function reloadSaved() {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await readSaved();
+      if (result.state === "ready") setSchedule(result.data);
+      else if (result.state === "empty") {
+        setSchedule(null);
+        setNotice("保存済みの予定はありません。");
+      } else
+        setError(
+          "保存済みの予定を読み込めません。表示中の前回結果を維持しています。",
+        );
+    } catch {
+      setError("保存済みの予定を読み込めませんでした。");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function persistExclusions(excludedDates) {
+    const result = await writeExclusions({ data: { excludedDates } });
+    if (result.state !== "ready") throw new Error("SETTINGS_SAVE_FAILED");
+    setSchedule(result.data);
+  }
   const readSchedule = useServerFn(readGoogleSchedule);
   async function load() {
     setBusy(true);
     setError("");
-    setSchedule(null);
     try {
       const result = await readSchedule();
       if (result.state === "ready") setSchedule(result.data);
@@ -47,9 +78,7 @@ export function AccountPage({ status }) {
   useEffect(() => {
     setFramed(window !== window.parent);
   }, []);
-  useEffect(() => {
-    if (status.state !== "connected") setSchedule(null);
-  }, [status.state]);
+
   useEffect(() => {
     try {
       if (pendingCalendar(window.sessionStorage)) {
@@ -168,24 +197,60 @@ export function AccountPage({ status }) {
             {busy ? "予定を読み込み中…" : "Googleの予定を読み込む"}
           </button>
         )}
+        <button
+          type="button"
+          className="secondary-button"
+          disabled={busy}
+          onClick={reloadSaved}
+        >
+          保存済みの予定を再読込
+        </button>
+        {saved?.state === "failed" && (
+          <p role="status">
+            保存済みデータの確認に失敗しました。DB設定と権限を確認してください。
+          </p>
+        )}
+        {schedule && (
+          <p>
+            取得日時：
+            {new Intl.DateTimeFormat("ja-JP", {
+              timeZone: "Asia/Tokyo",
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(new Date(schedule.fetchedAt ?? schedule.generatedAt))}
+            （日本時間）
+            {schedule.range.endDateExclusive <=
+            new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" })
+              ? "・対象期間が終了しています。Googleから更新してください。"
+              : ""}
+          </p>
+        )}
         <p role="status">{error}</p>
         <p className="fine-print">
-          メインカレンダーの今日から31日分のみ。画面を離れると再読込が必要です。DB保存・相手との共有は行いません。
+          メインカレンダーの今日から31日分を取得し、本人専用に保存します。画面を開くと保存済みの完成版を表示します。Google取得はボタン操作時のみ。相手との共有・自動更新は未接続です。
         </p>
         <p className="fine-print">
-          ログインとGoogleの閲覧許可は別の手順です。LINE紐付け・グループ共有同意・予定保存は準備中です。接続しただけで予定が共有されることはありません。
+          ログインとGoogleの閲覧許可は別の手順です。LINE紐付け・グループ共有同意は準備中です。接続しただけで予定が共有されることはありません。
         </p>
         <button type="button" className="secondary-button" onClick={logout}>
           ログアウト
         </button>
       </section>
-      {schedule && <PersonalPage key={schedule.generatedAt} data={schedule} />}
+      {schedule && (
+        <PersonalPage
+          key={schedule.snapshotId ?? schedule.generatedAt}
+          data={schedule}
+          onExclusionsChange={persistExclusions}
+        />
+      )}
     </>
   );
 }
 
 function calendarError(result) {
   const messages = {
+    SCHEDULE_SAVE_FAILED:
+      "取得結果を保存できませんでした。表示中の前回結果を維持しています。DB設定と権限を確認してください。",
     GOOGLE_RECONNECT:
       "Googleの認可を確認してください。再接続が必要な可能性があります。",
     GOOGLE_FORBIDDEN:

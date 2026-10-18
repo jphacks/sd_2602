@@ -93,5 +93,11 @@
     "source_revision",
     "range",
     "events"
-  ]
+  ],
+  "rls": {
+    "create": false,
+    "read": false,
+    "update": false,
+    "delete": false
+  }
 }
