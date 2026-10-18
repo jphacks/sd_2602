@@ -27,16 +27,24 @@ export async function fetchEvents({ accessToken, range, fetcher = fetch }) {
         "nextPageToken,items(id,status,start,end,eventType,transparency,organizer(self),attendees(self,responseStatus))",
       ...(pageToken ? { pageToken } : {}),
     });
-    let response, body;
+    let response, body, signal;
     try {
+      signal = AbortSignal.timeout(15000);
       response = await fetcher(url, {
         headers: { Authorization: "Bearer " + accessToken },
-        signal: AbortSignal.timeout(15000),
-        redirect: "error",
+        signal,
+        // Workers supports manual/follow; never forward the bearer token to a redirect.
+        redirect: "manual",
       });
-    } catch {
-      throw new CalendarError("GOOGLE_NETWORK");
+    } catch (error) {
+      throw new CalendarError(
+        signal?.aborted || error?.name === "TimeoutError"
+          ? "GOOGLE_TIMEOUT"
+          : "GOOGLE_NETWORK",
+      );
     }
+    if (response.status >= 300 && response.status < 400)
+      throw new CalendarError("GOOGLE_REDIRECT");
     if (!response.ok)
       throw new CalendarError(
         {
@@ -48,7 +56,9 @@ export async function fetchEvents({ accessToken, range, fetcher = fetch }) {
     try {
       body = await response.json();
     } catch {
-      throw new CalendarError("GOOGLE_RESPONSE_INVALID");
+      throw new CalendarError(
+        signal?.aborted ? "GOOGLE_TIMEOUT" : "GOOGLE_RESPONSE_INVALID",
+      );
     }
     if (
       !body ||

@@ -192,6 +192,10 @@ function calendarError(result) {
       "Google Calendar APIの有効化・閲覧権限を確認してください。",
     GOOGLE_RATE_LIMIT:
       "Googleへのアクセスが集中しています。時間をおいて再試行してください。",
+    GOOGLE_TIMEOUT:
+      "Googleからの応答待ちが時間切れになりました。時間をおいて再試行してください。",
+    GOOGLE_REDIRECT:
+      "Google APIから想定外の転送応答があり、予定の取得を中止しました。",
     GOOGLE_NETWORK: "Googleとの通信が完了しませんでした。再試行してください。",
     CONNECTION_UNCONFIRMED: "Google接続とConnector IDを確認してください。",
     CONNECTOR_UNAVAILABLE: "Base44の接続情報を取得できませんでした。",

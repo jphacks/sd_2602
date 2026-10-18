@@ -22,6 +22,7 @@ test("Google transport follows all pages and requests only needed fields", async
     fetcher: async (url, options) => {
       calls.push(url);
       assert.equal(options.headers.Authorization, "Bearer private-token");
+      assert.equal(options.redirect, "manual");
       assert.equal(url.origin, "https://www.googleapis.com");
       assert.equal(url.searchParams.get("singleEvents"), "true");
       assert.equal(
@@ -180,5 +181,40 @@ test("configuration prevents calls; page failure yields no partial schedule", as
       },
     }),
     { state: "failed", code: "CONNECTION_UNCONFIRMED" },
+  );
+});
+
+test("redirects are never followed and timeouts are classified without provider details", async () => {
+  for (const status of [301, 302, 303, 307, 308]) {
+    let calls = 0;
+    await assert.rejects(
+      fetchEvents({
+        range,
+        accessToken: "private-token",
+        fetcher: async (_url, options) => {
+          calls++;
+          assert.equal(options.redirect, "manual");
+          return {
+            status,
+            ok: false,
+            headers: { get: () => "https://other.example/private" },
+            json: () => assert.fail("redirect must not be parsed"),
+          };
+        },
+      }),
+      { code: "GOOGLE_REDIRECT" },
+    );
+    assert.equal(calls, 1);
+  }
+  await assert.rejects(
+    fetchEvents({
+      range,
+      fetcher: async () => {
+        throw Object.assign(new Error("provider details"), {
+          name: "TimeoutError",
+        });
+      },
+    }),
+    { code: "GOOGLE_TIMEOUT" },
   );
 });
