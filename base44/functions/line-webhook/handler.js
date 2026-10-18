@@ -1,13 +1,13 @@
 // Web-standard handler: the same code runs on Base44 and in Node's local tests.
 import { buildDemoMessages, DEMO_VERSION, DEMO_SNAPSHOT } from "./cards.js";
 import { demoImageResponse } from "./image.js";
-const KEYWORDS = new Set(["＠リスケ", "@リスケ"]);
+import { commandFor, commandReply } from "./presentation.js";
 const MAX_BYTES = 1024 * 1024;
 
 export function replyFor(event) {
   if (event?.type !== "message" || event.message?.type !== "text") return [];
-  if (typeof event.message.text !== "string" || !KEYWORDS.has(event.message.text.trim())) return [];
-  return buildDemoMessages();
+  const command = commandFor(event);
+  return commandReply(command) ?? (command === "cards" ? buildDemoMessages() : []);
 }
 
 export async function verifySignature(body, signature, secret) {
@@ -113,7 +113,7 @@ export function createWebhookHandler({ getSecret, fetchImpl = fetch, log = conso
         if (!token) throw new HttpError(503, "LINE_NOT_CONFIGURED");
         if (eventId) seen.add(eventId);
         try {
-          record("keyword_matched");
+          record("keyword_matched", { command: commandFor(event) });
           record("cards_prepared", { ...snapshotInfo(), item_id: requestId, message_count: messages.length });
           await sendReply(event.replyToken, messages, token, fetchImpl);
           record("reply_sent");

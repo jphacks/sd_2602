@@ -119,12 +119,12 @@ test("cards use prepared versions, dates and one period per person; text stays o
   ];
   const messages = buildPreparedMessages(record, options),
     str = JSON.stringify(messages);
-  assert.equal(messages[0].type, "text");
-  assert.equal(messages[1].contents.hero.url, options.imageUrl);
+  assert.equal(messages[0].type, "flex");
+  assert.equal(messages[0].contents.contents[0].hero.url, options.imageUrl);
   assert.ok(str.includes("など"));
   assert.ok(!str.includes("12:00"));
   assert.equal(
-    messages[1].contents.footer.contents[0].action.uri,
+    messages[0].contents.contents.at(-1).action.uri,
     options.webUrl,
   );
   const expired = buildPreparedMessages(record, {
@@ -193,12 +193,12 @@ test("signed group command sends saved card without generating an image or invok
     },
     log: () => {},
   });
-  async function request(source, id) {
+  async function request(source, id, text = "@リスケ") {
     const body = JSON.stringify({
       events: [
         {
           type: "message",
-          message: { type: "text", text: "@リスケ" },
+          message: { type: "text", text },
           source: { type: source },
           replyToken: "reply",
           webhookEventId: id,
@@ -223,11 +223,18 @@ test("signed group command sends saved card without generating an image or invok
   }
   assert.equal((await handler(await request("group", "one"))).status, 200);
   assert.equal(sent.length, 1);
-  assert.equal(sent[0].messages[1].type, "flex");
+  assert.equal(sent[0].messages[0].type, "flex");
+  assert.equal(sent[0].messages[0].contents.contents.length, bundle.record.share.candidates.length + 1);
   await handler(await request("group", "one"));
   assert.equal(sent.length, 1);
   await handler(await request("user", "two"));
   assert.equal(sent.length, 1);
+  for (const [command, expected] of [['リスケしたい', '使えるコマンド'], ['予定確認', '準備中'], ['リスケする', null]]) {
+    await handler(await request('group', command, command));
+    const message = sent.at(-1).messages[0];
+    if (expected) assert.ok(message.text.includes(expected));
+    else assert.equal(message.type, 'flex');
+  }
   assert.equal(
     (
       await handler(

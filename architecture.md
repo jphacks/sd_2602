@@ -538,3 +538,21 @@ classDiagram
   ScheduleStore --> AvailabilitySnapshot : immutable complete view
 ~~~
 取得・計算・保存がすべて成功してから最新参照を切替。3エンティティの汎用CRUDはRLSで拒否し、本人認証したサーバー関数のみ所有者を限定してアクセスする。自動更新・2人実共有は追加しない。
+
+## LINEカード操作（2026-10-19）
+候補カードは画像・本文・カード全体のタップで提案文を送信する。提案ボタン、候補ID、活動時間、生成日時は表示しない。注意表示は「デモ・未確定」。最後のカードは藍色の「詳しく確認」のみで同一結果へのリンクを開く。日付順・各人1件＋「、など」・画像とデータの版照合を維持。
+「リスケしたい」はコマンド一覧、「リスケする」はカード、「予定確認」は準備中の案内（リンクカード未実装）。従来のテストコマンドは互換として受付し、一覧には表示しない。保存済みデモのグループ限定と署名検証は維持。ログはコマンド種別のみ追加し、提案本文・予定本文は記録しない。
+
+```mermaid
+classDiagram
+  WebhookHandler --> LinePresentation : commandFor / commandReply
+  PreparedDemoHandler --> LinePresentation : commandFor / commandReply
+  DemoCards --> LinePresentation : candidateBubble / moreBubble
+  PreparedMessages --> LinePresentation : candidateBubble / moreBubble
+  class LinePresentation {
+    commandFor(event)
+    commandReply(command)
+    candidateBubble(data)
+    moreBubble(url)
+  }
+```

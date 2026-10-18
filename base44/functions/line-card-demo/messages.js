@@ -1,3 +1,4 @@
+import { candidateBubble, moreBubble } from "../line-webhook/presentation.js";
 function label(date) {
   return new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -22,9 +23,6 @@ function busy(day) {
     " 予定あり" +
     (periods.length > 1 ? "、など" : "")
   );
-}
-function text(value, size = "sm") {
-  return { type: "text", text: value, size, wrap: true };
 }
 export function buildPreparedMessages(
   record,
@@ -52,64 +50,8 @@ export function buildPreparedMessages(
   if (candidates.length > 3) throw new Error("CARD_CANDIDATES_INVALID");
   if (!candidates.length)
     return [{ type: "text", text: "【テスト】条件に合う候補日がありません。" }];
-  const contents = candidates.map((c) => ({
-    type: "box",
-    layout: "vertical",
-    spacing: "xs",
-    contents: [
-      text(label(c.date), "md"),
-      text("A：" + busy(c.self)),
-      text("B：" + busy(c.other)),
-    ],
-  }));
-  const stamp = (v) =>
-    new Intl.DateTimeFormat("ja-JP", {
-      timeZone: "Asia/Tokyo",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(v));
-  return [
-    {
-      type: "text",
-      text:
-        "【架空データの動作デモ】予定取得時刻（日本時間） A：" +
-        stamp(record.selfFetchedAt) +
-        "／B：" +
-        stamp(record.otherFetchedAt),
-    },
-    {
-      type: "flex",
-      altText: "【テスト】日程候補" + candidates.length + "件",
-      contents: {
-        type: "bubble",
-        size: "mega",
-        hero: {
-          type: "image",
-          url: imageUrl,
-          size: "full",
-          aspectRatio: "732:" + record.image.height,
-          aspectMode: "fit",
-        },
-        body: { type: "box", layout: "vertical", spacing: "md", contents },
-        footer: {
-          type: "box",
-          layout: "vertical",
-          contents: [
-            {
-              type: "button",
-              style: "primary",
-              color: "#317747",
-              action: {
-                type: "uri",
-                label: "同じ結果をWebで見る",
-                uri: webUrl,
-              },
-            },
-          ],
-        },
-      },
-    },
-  ];
+  return [{type:'flex',altText:'日程候補'+candidates.length+'件（デモ・未確定）',contents:{type:'carousel',contents:[
+    ...candidates.map(c=>candidateBubble({imageUrl,aspectRatio:'732:'+record.image.height,dateLabel:label(c.date),self:busy(c.self),other:busy(c.other)})),
+    moreBubble(webUrl)
+  ]}}];
 }

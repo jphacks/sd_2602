@@ -23,28 +23,17 @@ test("zero to three candidates produce only the existing cards plus more", () =>
   }
 });
 
-test("candidate cards share the image, identify candidates and post test proposals", () => {
-  const [message] = buildDemoMessages();
-  const cards = message.contents.contents;
-  assert.match(message.altText, /テスト/);
-  assert.equal(new Set(cards.map(card => card.hero.url)).size, 1);
-  for (const [index, candidate] of DEMO_SNAPSHOT.candidates.entries()) {
-    const card = cards[index];
-    assert.equal(card.hero.aspectMode, "fit");
-    assert.match(card.body.contents[0].text, new RegExp(candidate.id));
-    assert.equal(card.footer.contents[0].action.type, "message");
-    assert.equal(card.footer.contents[0].action.label, "この候補を提案する");
-    const proposal = card.footer.contents[0].action.text;
-    for (const expected of ["テスト提案", candidate.dateLabel, candidate.busy, DEMO_SNAPSHOT.activityWindow, DEMO_SNAPSHOT.timezone]) {
-      assert.ok(proposal.includes(expected));
-    }
-    assert.match(card.footer.contents[1].text, /実予定ではありません/);
-  }
-  const more = cards.at(-1);
-  assert.equal(more.footer.contents[0].action.type, "uri");
-  assert.equal(more.footer.contents[0].action.uri, DEMO_SNAPSHOT.moreUrl);
-  assert.equal(DEMO_SNAPSHOT.moreUrl, "https://sync-engine-copy-49e423a5.base44.app/me");
-  assert.match(more.body.contents[1].text, /テスト用カレンダー/);
+test('candidate taps propose and last card is only a text link',()=>{
+ const cards=buildDemoMessages()[0].contents.contents;
+ for(const [i,c] of DEMO_SNAPSHOT.candidates.entries()) {
+  const card=cards[i]; assert.equal(card.footer,undefined); assert.equal(card.header,undefined);
+  assert.equal(card.action.type,'message'); assert.deepEqual(card.hero.action,card.action); assert.deepEqual(card.body.action,card.action);
+  assert.ok(card.action.text.includes(c.dateLabel)); assert.ok(card.action.text.includes(c.busy));
+  assert.match(card.action.text,/確定ではありません/);
+  assert.ok(!JSON.stringify(card).includes('候補ID')); assert.ok(!JSON.stringify(card).includes('活動時間 09'));
+ }
+ const more=cards.at(-1); assert.equal(more.hero,undefined); assert.equal(more.body.contents.length,1);
+ assert.equal(more.body.contents[0].text,'詳しく確認'); assert.equal(more.action.uri,DEMO_SNAPSHOT.moreUrl);
 });
 
 test("too many candidates and mismatched image versions fail instead of mixing results", () => {

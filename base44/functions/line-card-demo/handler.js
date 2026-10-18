@@ -1,3 +1,4 @@
+import { commandFor, commandReply } from "../line-webhook/presentation.js";
 import { createWebhookHandler } from "../line-webhook/handler.js";
 import { buildPreparedMessages } from "./messages.js";
 export function createPreparedDemoHandler({
@@ -48,10 +49,10 @@ export function createPreparedDemoHandler({
         event?.source?.type !== "group" ||
         event?.type !== "message" ||
         event.message?.type !== "text" ||
-        !["@リスケ", "＠リスケ"].includes(event.message.text?.trim())
+        !commandFor(event)
       )
         return [];
-      return buildPreparedMessages(record, { imageUrl, webUrl, now: now() });
+      return commandReply(commandFor(event)) ?? buildPreparedMessages(record, { imageUrl, webUrl, now: now() });
     },
     snapshotInfo: () => ({
       fixture_version: record.version,
