@@ -9,7 +9,7 @@ import { buildSchedule } from "../src/lib/personal/schedule.js";
 import { dateInTokyo } from "../src/lib/personal/dates.js";
 import { prepareCard } from "../src/lib/line-card/prepare.js";
 const now = new Date(),
-  today = dateInTokyo(now),
+  today = process.argv[3] === "--selected" ? "2026-10-19" : dateInTokyo(now),
   seed = JSON.parse(
     await readFile(
       new URL("../src/mock/personal.json", import.meta.url),
@@ -63,6 +63,12 @@ if (
   origin.hash
 )
   throw Error("Expected HTTPS web origin");
+if (process.argv[3] === '--selected') {
+  const expected=['2026-11-09','2026-11-13','2026-11-15'];
+  if (JSON.stringify(record.share.candidates.map(c=>c.date)) !== JSON.stringify(expected)) throw Error('SELECTED_IMAGE_CANDIDATES_MISMATCH');
+  bytes = await readFile(new URL('../test/fixtures/selected-pair-calendar.jpg',import.meta.url));
+  record.image = {...record.image,key:'fixture/'+record.version+'.jpg',hash:crypto.createHash('sha256').update(bytes).digest('hex'),width:646,height:461,contentType:'image/jpeg',rendererVersion:'approved-web-capture-2026-10-19'};
+}
 const bundle = {
   record,
   imageBase64: Buffer.from(bytes).toString("base64"),

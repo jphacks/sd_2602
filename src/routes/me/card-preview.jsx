@@ -33,7 +33,7 @@ function Page() {
       <section className="personal-panel">
         <h2>LINEカードの固定版プレビュー</h2>
         <p>
-          架空データです。保存済みの同じ計算結果・PNGを表示しています。実予定やDBには接続しません。
+          架空データです。保存済みの同じ計算結果・画像を表示しています。実予定やDBには接続しません。
         </p>
         <p>版：{record.version}</p>
         <p>
@@ -45,11 +45,11 @@ function Page() {
       </section>
       <div className="calendar-layout">
         <PairCalendar share={share} selectedDate={date} onSelect={setDate} />
-        <PairDetail
+        <div className="schedule-wrapper"><PairDetail
           day={day}
           candidate={candidate}
           window={share.activityWindow}
-        />
+        /></div>
       </div>
       <Candidates
         candidates={share.candidates}
@@ -63,15 +63,15 @@ function Page() {
         <h2>事前生成したカード画像</h2>
         <img
           style={{ width: "100%", maxWidth: 732 }}
-          src={"data:image/png;base64," + imageBase64}
+          src={"data:" + (record.image.contentType ?? "image/png") + ";base64," + imageBase64}
           alt="日付・2人の多忙度・候補の星を示す月画像"
         />
         <a
           className="primary-button"
-          href={"data:image/png;base64," + imageBase64}
-          download={"risuke-" + record.version + ".png"}
+          href={"data:" + (record.image.contentType ?? "image/png") + ";base64," + imageBase64}
+          download={"risuke-" + record.version + (record.image.contentType === "image/jpeg" ? ".jpg" : ".png")}
         >
-          PNGを保存
+          画像を保存
         </a>
         <p>
           端末への保存は任意です。Botは事前生成済み画像を使います。候補選択はこの画面だけの下書きで、カードの版は変わりません。

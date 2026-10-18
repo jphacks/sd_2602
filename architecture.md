@@ -558,3 +558,22 @@ classDiagram
 ```
 
 LINE関数の配布制約：関数フォルダー外への相対importはBase44で利用不可。共通表示と署名付きHTTP処理は `node scripts/package-line-functions.mjs` でline-card-demo内へ同梱する。変更後は `node scripts/package-line-functions.mjs --check` と関連テストを実行してから2関数をデプロイする。生成先presentation.js/transport.jsは直接編集しない。
+
+## LINE経路統一の修正（2026-10-19）
+既存line-webhookのentryを保存済み2人版ハンドラーへ接続。line-card-demoと同一のprepared.json、選択JPEG（646×461）、候補11/9・13・15を同梱する。旧cards.js等は旧テスト互換として残すが本番entryから呼ばない。画像のhash・内容・候補日・同梱版をテストで照合。画像はcontentTypeとwidth/heightに従って配信。グループ限定の固定デモであり実予定は使用しない。
+「詳しく確認」は同じ関数の?view=details&version=…へ接続し、同じ保存版の画像と候補を表示する。別版404・期限切れ410。未公開のWebサイトや動的な/meへ遷移しない。/me/card-previewも同じバンドルを使用する。画像再準備は node scripts/prepare-line-demo.mjs <HTTPS origin> --selected、その後package-line-functions.mjsを実行。--selectedは承認済み10/19固定画像との候補一致を強制し、別候補では停止する。これは自動更新する実共有ではない。
+
+```mermaid
+flowchart LR
+  LINE --> RegisteredWebhook[line-webhook entry]
+  RegisteredWebhook --> PreparedHandler
+  PreparedHandler --> FixedBundle[同一版の2人候補と承認JPEG]
+  PreparedHandler --> VersionedImage[asset=calendar + version]
+  PreparedHandler --> VersionedDetails[view=details + version]
+  FixedBundle --> CardPreview[me/card-preview]
+```
+
+## 最終の接続先と確認結果（2026-10-19・上記のURL維持案を更新）
+Base44からpullしたline-webhookのコードは新版だったが、同名の公開URLは旧画像処理を返した。内部原因は未確定で、CLI成功だけでは公開ルートの更新を保証できないことを実測。旧関数は削除せず、LINE公式APIでWebhookを検証済みの **line-card-demo** へ明示切替えた。今後の正規LINE受付は https://base44.app/api/apps/6ad3509425cadbfc49e423a5/functions/line-card-demo 。active=trueを再取得済み。line-webhookの公開応答は現行の確認に使わない。旧経路の削除・プラットフォーム側の原因解明は行っていない。
+結果版8c0726e2-0f7d-4e6b-8992-e62236007e5a、候補11/9・13・15、承認JPEGのSHA-256一致、画像200/image/jpeg、同じ関数の版付き詳細200/text/html、LINE validate/reply 200、旧画像版404を確認。V37〜V40の経路・内容照合は合格。V41の実LINE新規返信・タップ表示は本人による確認待ち。実トークへの送信は未実施。関連26テスト・Lint・Base44ビルド成功。
+以後は node scripts/package-line-functions.mjs --check と node scripts/verify-line-route.mjs を公開確認に使用する。後者は秘密を表示せず登録Webhook・active・画像実体ハッシュ・詳細の日付と版・LINE形式・旧版拒否を照合する。メッセージ送信や設定変更はしない。チャネルのローカル秘密バックアップがある開発者環境で実行する。選択画像は10/19基準の固定テストで、自動更新する実共有ではない。

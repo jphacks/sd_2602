@@ -98,3 +98,5 @@ BASE44_DEPLOYMENTS_API=1はCLI内で確認した経路だが、現アプリで�
 Google接続入口は /account。Base44のApp user connector IDをGOOGLE_CALENDAR_CONNECTOR_IDとしてサーバー設定へ登録する。Google OAuthクライアントIDやシークレットをこの項目に入れない。設定未確認のため現在は登録・実認可していない。
 
 LINE関数の配布制約：関数フォルダー外への相対importはBase44で利用不可。共通表示と署名付きHTTP処理は `node scripts/package-line-functions.mjs` でline-card-demo内へ同梱する。変更後は `node scripts/package-line-functions.mjs --check` と関連テストを実行してから2関数をデプロイする。生成先presentation.js/transport.jsは直接編集しない。
+
+現在のLINE登録先はline-card-demo。line-webhookは旧公開応答が残るため利用しない。最新の接続確認は node scripts/verify-line-route.mjs。詳細はdocs/dev/line-deploy-test.md末尾を参照。

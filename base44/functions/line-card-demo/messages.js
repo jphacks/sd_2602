@@ -1,11 +1,12 @@
 import { candidateBubble, moreBubble } from "./presentation.js";
 function label(date) {
-  return new Intl.DateTimeFormat("ja-JP", {
+  const formatted = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
     month: "numeric",
     day: "numeric",
     weekday: "short",
   }).format(new Date(date + "T00:00:00+09:00"));
+  return formatted.replace(/(\d+)\/(\d+)/, "$1月$2日");
 }
 function busy(day) {
   const periods = day.periods
@@ -51,7 +52,7 @@ export function buildPreparedMessages(
   if (!candidates.length)
     return [{ type: "text", text: "【テスト】条件に合う候補日がありません。" }];
   return [{type:'flex',altText:'日程候補'+candidates.length+'件（デモ・未確定）',contents:{type:'carousel',contents:[
-    ...candidates.map(c=>candidateBubble({imageUrl,aspectRatio:'732:'+record.image.height,dateLabel:label(c.date),self:busy(c.self),other:busy(c.other)})),
+    ...candidates.map(c=>candidateBubble({imageUrl,aspectRatio:record.image.width+':'+record.image.height,dateLabel:label(c.date),self:busy(c.self),other:busy(c.other)})),
     moreBubble(webUrl)
   ]}}];
 }

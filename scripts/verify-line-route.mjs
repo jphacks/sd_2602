@@ -1,0 +1,35 @@
+/* global fetch, AbortSignal */
+import { Buffer } from 'node:buffer';
+// Read-only release check. Never sends a message or changes the webhook.
+import fs from 'node:fs';
+import { URL } from 'node:url';
+import console from 'node:console';
+import { createHash } from 'node:crypto';
+import { buildPreparedMessages } from '../base44/functions/line-card-demo/messages.js';
+const root = new URL('../', import.meta.url);
+const bundle = JSON.parse(fs.readFileSync(new URL('base44/functions/line-card-demo/prepared.json',root),'utf8'));
+const match = fs.readFileSync(new URL('.env.line.local',root),'utf8').match(/^\s*LINE_CHANNEL_ACCESS_TOKEN\s*=\s*(.+?)\s*$/m);
+if (!match) throw Error('LOCAL_TOKEN_NOT_FOUND');
+const headers = {Authorization:'Bearer '+match[1].replace(/^(['"])(.*)\1$/,'$2'),'Content-Type':'application/json'};
+const request = (url,options={}) => fetch(url,{...options,signal:AbortSignal.timeout(15000)});
+const endpoint = 'https://base44.app/api/apps/6ad3509425cadbfc49e423a5/functions/line-card-demo';
+const configResponse=await request('https://api.line.me/v2/bot/channel/webhook/endpoint',{headers});
+if(!configResponse.ok)throw Error('LINE_CONFIG_READ_FAILED');
+const config=await configResponse.json();
+if(config.endpoint!==endpoint||!config.active)throw Error('LINE_ROUTE_MISMATCH');
+const imageUrl=endpoint+'?asset=calendar&version='+bundle.record.version;
+const webUrl=endpoint+'?view=details&version='+bundle.record.version;
+const image=await request(imageUrl);
+const hash=createHash('sha256').update(Buffer.from(await image.arrayBuffer())).digest('hex');
+if(image.status!==200||image.headers.get('content-type')!==bundle.record.image.contentType||hash!==bundle.record.image.hash)throw Error('LINE_IMAGE_MISMATCH');
+const detail=await request(webUrl),html=await detail.text();
+const messages=buildPreparedMessages(bundle.record,{imageUrl,webUrl});
+if(messages[0].type!=='flex')throw Error('LINE_CARD_NOT_READY');
+const cards=messages[0].contents.contents;
+if(detail.status!==200||!html.includes(bundle.record.version)||cards.slice(0,-1).some(card=>!html.includes(card.body.contents[0].text)))throw Error('LINE_DETAILS_MISMATCH');
+if(cards.some(card=>card.action?.type==='uri'&&card.action.uri!==webUrl))throw Error('LINE_LINK_MISMATCH');
+const valid=await request('https://api.line.me/v2/bot/message/validate/reply',{method:'POST',headers,body:JSON.stringify({messages})});
+if(!valid.ok)throw Error('LINE_FORMAT_INVALID');
+const old=await request(endpoint+'?asset=calendar&version=image-demo-v1');
+if(old.status!==404)throw Error('LINE_OLD_IMAGE_ACCEPTED');
+console.log(JSON.stringify({endpoint:config.endpoint,active:config.active,version:bundle.record.version,candidates:bundle.record.share.candidates.map(c=>c.date),imageHashMatches:true,details:detail.status,lineValidation:valid.status,oldVersion:old.status,liveMessageSent:false}));
