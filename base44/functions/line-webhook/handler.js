@@ -1,7 +1,7 @@
 // Web-standard handler: the same code runs on Base44 and in Node's local tests.
 import { buildDemoMessages, DEMO_VERSION, DEMO_SNAPSHOT } from "./cards.js";
 import { demoImageResponse } from "./image.js";
-const KEYWORDS = new Set(["＠リスケ", "@リスケ"]);
+const KEYWORDS = new Set(["＠日程", "@日程"]);
 const MAX_BYTES = 1024 * 1024;
 
 export function replyFor(event) {

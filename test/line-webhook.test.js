@@ -4,7 +4,7 @@ import { createHmac } from "node:crypto";
 import { createWebhookHandler } from "../base44/functions/line-webhook/handler.js";
 
 const secret = "fake-channel-secret";
-const keywordEvent = (text = "＠リスケ", id = "fake-event") => ({
+const keywordEvent = (text = "＠日程", id = "fake-event") => ({
   type: "message", webhookEventId: id, replyToken: "fake-reply-token",
   message: { type: "text", text },
 });
@@ -57,7 +57,7 @@ test("signature is checked against the original bytes before JSON parsing", asyn
 
 test("LINE Verify and unrelated events send nothing", async () => {
   const { handle, replies } = setup();
-  for (const events of [[], [keywordEvent("こんにちは")], [{ type: "follow" }], [null], [keywordEvent(123)]]) {
+  for (const events of [[], [keywordEvent("こんにちは")], [keywordEvent("＠リスケ")], [keywordEvent("@リスケ")], [{ type: "follow" }], [null], [keywordEvent(123)]]) {
     assert.equal((await handle(post(JSON.stringify({ events })))).status, 200);
   }
   assert.equal(replies.length, 0);
@@ -65,7 +65,7 @@ test("LINE Verify and unrelated events send nothing", async () => {
 
 test("both keywords reply once and duplicates within an instance are ignored", async () => {
   const { handle, replies, logs } = setup();
-  for (const [index, text] of ["＠リスケ", " @リスケ "].entries()) {
+  for (const [index, text] of ["＠日程", " @日程 "].entries()) {
     const body = JSON.stringify({ events: [keywordEvent(text, `fake-${index}`)] });
     assert.equal((await handle(post(body))).status, 200);
     assert.equal((await handle(post(body))).status, 200);
@@ -75,7 +75,7 @@ test("both keywords reply once and duplicates within an instance are ignored", a
   assert.equal(replies[0].messages[0].contents.contents.length, 4);
   assert.ok(logs.some((line) => JSON.parse(line).event === "cards_prepared"));
   assert.equal(replies[0].url, "https://api.line.me/v2/bot/message/reply");
-  for (const forbidden of ["fake-channel-secret", "fake-access-token", "fake-reply-token", "＠リスケ"]) {
+  for (const forbidden of ["fake-channel-secret", "fake-access-token", "fake-reply-token", "＠日程"]) {
     assert.equal(logs.join("\n").includes(forbidden), false);
   }
   assert.ok(logs.some((line) => JSON.parse(line).event === "reply_sent"));
