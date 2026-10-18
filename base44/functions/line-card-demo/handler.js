@@ -1,5 +1,5 @@
-import { commandFor, commandReply } from "../line-webhook/presentation.js";
-import { createWebhookHandler } from "../line-webhook/handler.js";
+import { commandFor, commandReply } from "./presentation.js";
+import { createWebhookHandler } from "./transport.js";
 import { buildPreparedMessages } from "./messages.js";
 export function createPreparedDemoHandler({
   record,

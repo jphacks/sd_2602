@@ -556,3 +556,5 @@ classDiagram
     moreBubble(url)
   }
 ```
+
+LINE関数の配布制約：関数フォルダー外への相対importはBase44で利用不可。共通表示と署名付きHTTP処理は `node scripts/package-line-functions.mjs` でline-card-demo内へ同梱する。変更後は `node scripts/package-line-functions.mjs --check` と関連テストを実行してから2関数をデプロイする。生成先presentation.js/transport.jsは直接編集しない。

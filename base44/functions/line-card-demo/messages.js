@@ -1,4 +1,4 @@
-import { candidateBubble, moreBubble } from "../line-webhook/presentation.js";
+import { candidateBubble, moreBubble } from "./presentation.js";
 function label(date) {
   return new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
