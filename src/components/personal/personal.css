@@ -1,0 +1,536 @@
+/* Desktop dimensions, colors and interaction layout follow the supplied reference HTML. */
+.personal-shell {
+  --bg-color: #fff;
+  --panel-bg: #fff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-sub: #64748b;
+  --text-date: #334155;
+  --btn-main: #10b981;
+  --btn-hover: #059669;
+  background: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.6;
+  padding: 24px;
+  width: 100%;
+  min-height: 100vh;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+.personal-shell * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+.personal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.personal-header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 4px;
+  color: var(--text-main);
+  font-weight: 700;
+}
+.personal-header > p {
+  font-size: 0.95rem;
+  color: var(--text-sub);
+}
+.demo-status {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  margin-top: 8px !important;
+}
+.demo-status a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.personal-main {
+  width: 100%;
+}
+.personal-panel {
+  margin-bottom: 24px;
+  background: var(--panel-bg);
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  width: 100%;
+}
+.personal-panel h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 6px;
+}
+.shortcut-panel input {
+  width: 100%;
+  max-width: 500px;
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.shortcut-panel input:focus {
+  border-color: var(--btn-main);
+}
+.hint {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-top: 8px !important;
+}
+.fine-print {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  line-height: 1.6;
+  margin-top: 10px !important;
+}
+.source-note {
+  margin-top: 0 !important;
+}
+.personal-shell :is(button, a, input, textarea):focus-visible {
+  outline: 2px solid var(--btn-main);
+  outline-offset: 3px;
+}
+.personal-shell button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.candidate-hint {
+  font-size: 0.9rem;
+  margin-bottom: 12px !important;
+  color: var(--text-sub);
+}
+.candidate-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px !important;
+}
+.candidate-card {
+  flex: 1;
+  min-width: 250px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 18px !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--panel-bg);
+  text-align: left;
+  color: var(--text-main);
+}
+.candidate-card.is-picked {
+  border-color: var(--btn-main);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+.candidate-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.candidate-card .events {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+}
+.candidate-section textarea {
+  width: 100%;
+  height: 180px;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  resize: vertical;
+  margin-bottom: 12px;
+  outline: none;
+  background: #fff;
+  color: var(--text-main);
+}
+.primary-button,
+.secondary-button {
+  display: inline-block;
+  border: none;
+  padding: 12px 24px !important;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+  line-height: 1.6;
+  text-decoration: none;
+}
+.primary-button {
+  background: var(--btn-main);
+  color: #fff;
+}
+.primary-button:hover {
+  background: var(--btn-hover);
+}
+.secondary-button {
+  background: #fff;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+.secondary-button:hover {
+  background: #f1f5f9;
+}
+.copy-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.copy-row [role="status"] {
+  font-size: 0.95rem;
+  color: var(--btn-main);
+  font-weight: 700;
+}
+.calendar-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  width: 100%;
+}
+.personal-panel.month-panel {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: #fff;
+  border-radius: 32px;
+  padding: 24px;
+  border: none;
+}
+.month-panel h2 {
+  border-bottom: none;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 24px;
+  padding-bottom: 0;
+}
+.period-label {
+  font-size: 0.95rem;
+  color: var(--text-sub);
+  margin-left: 10px !important;
+  font-weight: 400;
+}
+.calendar-legend {
+  margin-bottom: 24px !important;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.calendar-legend strong {
+  font-weight: 700;
+  color: var(--text-sub);
+  width: 50px;
+}
+.calendar-legend > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.calendar-legend i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  display: inline-block;
+}
+.calendar-legend i.level-0 {
+  border: 1px solid #e2e8f0;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.calendar-day {
+  aspect-ratio: 1/1;
+  min-height: auto;
+  padding: 0;
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--month-border, transparent);
+}
+.calendar-day:hover {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+.calendar-day .day-number {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--text-date);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.calendar-day.is-selected .day-number {
+  background: #5b6b7c;
+  color: #fff !important;
+  font-weight: 600;
+}
+.calendar-day .month-label {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  z-index: 4;
+}
+.today-marker,
+.excluded-marker {
+  position: absolute;
+  bottom: 12px;
+  font-size: 0.7rem;
+  z-index: 2;
+  font-weight: 500;
+}
+.today-marker {
+  color: #ef4444;
+}
+.excluded-marker {
+  color: var(--text-sub);
+}
+.level-0 {
+  background: #fff;
+}
+.level-1 {
+  background: #e6f9f0;
+}
+.level-2 {
+  background: #a7f3d0;
+}
+.level-3 {
+  background: #5eead4;
+}
+.calendar-day.special-nov1 {
+  border-color: #3b0764 !important;
+  border-width: 3px !important;
+}
+.schedule-wrapper {
+  width: 360px;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.detail-prompt {
+  margin-bottom: 12px !important;
+  width: 100%;
+  text-align: center;
+}
+.day-panel {
+  padding: 24px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  color: var(--text-sub);
+  padding: 0 4px !important;
+}
+.schedule-date {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 6px !important;
+}
+.schedule-summary {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin-bottom: 16px !important;
+}
+.day-panel h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 16px 0 12px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 6px;
+}
+.time-row {
+  display: flex;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 0 !important;
+}
+.time-row time {
+  width: 55px;
+  flex-shrink: 0;
+  color: var(--text-sub);
+}
+.time-row > span {
+  flex: 1;
+  padding-left: 10px;
+}
+.time-row .has-event {
+  font-weight: 700;
+  color: var(--btn-main);
+}
+.time-row .empty {
+  color: #94a3b8;
+}
+.all-day-note {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px !important;
+  font-size: 0.85rem;
+  margin: 12px 0 !important;
+}
+.all-day-note p {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+.period-list {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin-bottom: 12px !important;
+}
+.exclude-button {
+  width: 100%;
+  margin-top: 16px !important;
+}
+.personal-intro {
+  margin-bottom: 24px !important;
+}
+.personal-intro h1 {
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+.personal-intro > p {
+  color: var(--text-sub);
+}
+.eyebrow {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  letter-spacing: 1px;
+}
+.status-pill {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+}
+.connection-card > p {
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  margin-top: 12px;
+}
+.connection-steps {
+  list-style: none;
+  margin: 24px 0 !important;
+}
+.connection-steps li {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.connection-steps li > b {
+  color: var(--btn-main);
+  font-size: 1.2rem;
+}
+.connection-steps strong {
+  font-size: 1rem;
+}
+.connection-steps p,
+.connection-steps small {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+.roadmap ul {
+  padding-left: 20px;
+  margin-top: 12px;
+  line-height: 2;
+}
+.empty-state {
+  padding: 12px !important;
+  color: var(--text-sub);
+}
+@media (max-width: 900px) {
+  .calendar-layout {
+    flex-direction: column;
+  }
+  .schedule-wrapper {
+    width: 100%;
+  }
+  .candidate-card {
+    min-width: 200px;
+  }
+}
+@media (max-width: 600px) {
+  .personal-shell {
+    padding: 16px;
+  }
+  .personal-panel {
+    padding: 16px;
+  }
+  .personal-panel.month-panel {
+    padding: 12px;
+  }
+  .month-grid {
+    gap: 6px;
+  }
+  .calendar-day {
+    border-radius: 12px;
+  }
+  .calendar-day .day-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
+  .calendar-day .month-label {
+    right: 2px;
+    padding: 1px 4px;
+    font-size: 0.6rem;
+  }
+  .today-marker,
+  .excluded-marker {
+    bottom: 2px;
+    font-size: 0.55rem;
+  }
+  .candidate-card {
+    min-width: 100%;
+  }
+  .period-label {
+    display: block;
+    margin-left: 0 !important;
+    font-size: 0.8rem;
+  }
+  .calendar-legend {
+    gap: 8px;
+  }
+  .calendar-legend strong {
+    width: auto;
+  }
+  .copy-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .demo-status {
+    font-size: 0.7rem;
+  }
+}

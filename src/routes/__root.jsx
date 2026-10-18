@@ -38,7 +38,7 @@ function RootComponent() {
 // The document. There is no index.html: the server renders <html> from here.
 function RootDocument({ children }) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <head>
         <HeadContent />
       </head>

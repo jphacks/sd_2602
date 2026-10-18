@@ -3,10 +3,19 @@
 
 export const DEFAULT_MAX_CANDIDATES = 3;
 
-export function select(daily, { today, excludedDates = [], maxCandidates = DEFAULT_MAX_CANDIDATES }) {
+export function select(
+  daily,
+  { today, excludedDates = [], maxCandidates = DEFAULT_MAX_CANDIDATES },
+) {
   const excluded = new Set(excludedDates);
   const eligible = daily
-    .filter((d) => d.date > today && !excluded.has(d.date))
+    .filter(
+      (d) =>
+        d.date > today &&
+        !excluded.has(d.date) &&
+        d.activeMinutes > 0 &&
+        d.busyMinutes < d.activeMinutes,
+    )
     .sort(byCalmnessThenCloseness);
   const candidates = eligible.slice(0, maxCandidates).map(toCandidate);
   return {

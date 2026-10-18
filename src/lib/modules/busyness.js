@@ -4,19 +4,62 @@
 
 export const DEFAULT_ACTIVITY_WINDOW = { startMinute: 540, endMinute: 1320 }; // 09:00〜22:00
 
-export function calculateDaily(events, { dates, offsetMinutes = 540, activityWindow = DEFAULT_ACTIVITY_WINDOW }) {
+export function calculateDaily(
+  events,
+  { dates, offsetMinutes = 540, activityWindow = DEFAULT_ACTIVITY_WINDOW },
+) {
   return dates.map((date) => {
-    const row = availabilityOn(events, date, offsetMinutes, activityWindow.startMinute, activityWindow.endMinute);
-    return { date, activeMinutes: row.activeMinutes, busyMinutes: row.busyMinutes, busyRatio: row.busyRatio };
+    const timedEvents = events.filter((event) => !event.isAllDay);
+    const row = availabilityOn(
+      timedEvents,
+      date,
+      offsetMinutes,
+      activityWindow.startMinute,
+      activityWindow.endMinute,
+    );
+    // One daily equivalent, regardless of the number of all-day events. Never invent time slots.
+    const hasAllDay = events.some(
+      (event) =>
+        event.isAllDay &&
+        isBusy(event) &&
+        event.startDate <= date &&
+        date < event.endDateExclusive,
+    );
+    row.busyMinutes = Math.min(
+      row.activeMinutes,
+      row.busyMinutes + (hasAllDay ? 360 : 0),
+    );
+    row.busyRatio =
+      row.activeMinutes > 0 ? round4(row.busyMinutes / row.activeMinutes) : 0;
+    return {
+      date,
+      activeMinutes: row.activeMinutes,
+      busyMinutes: row.busyMinutes,
+      busyRatio: row.busyRatio,
+    };
   });
 }
 
-export function calculateHourly(events, { dates, offsetMinutes = 540, activityWindow = DEFAULT_ACTIVITY_WINDOW }) {
+export function calculateHourly(
+  events,
+  { dates, offsetMinutes = 540, activityWindow = DEFAULT_ACTIVITY_WINDOW },
+) {
   const rows = [];
+  const timedEvents = events.filter((event) => !event.isAllDay);
   for (const date of dates) {
-    for (let minute = activityWindow.startMinute; minute < activityWindow.endMinute; minute += 60) {
+    for (
+      let minute = activityWindow.startMinute;
+      minute < activityWindow.endMinute;
+      minute += 60
+    ) {
       const slotEndMinute = Math.min(minute + 60, activityWindow.endMinute);
-      const row = availabilityOn(events, date, offsetMinutes, minute, slotEndMinute);
+      const row = availabilityOn(
+        timedEvents,
+        date,
+        offsetMinutes,
+        minute,
+        slotEndMinute,
+      );
       rows.push({
         slotStart: `${date}T${toClock(minute)}`,
         activeMinutes: row.activeMinutes,
@@ -28,7 +71,7 @@ export function calculateHourly(events, { dates, offsetMinutes = 540, activityWi
   return rows;
 }
 
-// 活動時間は1日1区間の簡易版。allDayEquivalent：終日予定は活動時間全体を多忙扱い。
+// 活動時間は1日1区間。終日予定は日別のみ6時間換算し、時間別には混ぜない。
 function availabilityOn(events, date, offsetMinutes, fromMinute, toMinute) {
   const windowStartMs = localMs(date, fromMinute, offsetMinutes);
   const windowEndMs = localMs(date, toMinute, offsetMinutes);
@@ -59,12 +102,14 @@ function sumBusyMinutes(events, date, windowStartMs, windowEndMs) {
 }
 
 // 集計判断（Google互換・草案§5）：cancelled以外 × 不透明 × 承諾済み × 勤務地以外を多忙とする
-function isBusy(event) {
+export function isBusy(event) {
   const active = event.status === "confirmed" || event.status === "tentative";
-  return active
-    && event.transparency !== "transparent"
-    && event.participationStatus === "accepted"
-    && event.eventType !== "workingLocation";
+  return (
+    active &&
+    event.transparency !== "transparent" &&
+    event.participationStatus === "accepted" &&
+    event.eventType !== "workingLocation"
+  );
 }
 
 function mergeAndSumMinutes(intervals) {
@@ -89,7 +134,9 @@ function mergeAndSumMinutes(intervals) {
 
 // 地域の固定オフセット分でdate+分→UTCミリ秒へ（純計算・タイマー不使用）
 function localMs(date, minute, offsetMinutes) {
-  return Date.parse(`${date}T00:00:00.000Z`) - offsetMinutes * 60000 + minute * 60000;
+  return (
+    Date.parse(`${date}T00:00:00.000Z`) - offsetMinutes * 60000 + minute * 60000
+  );
 }
 
 function toClock(minute) {

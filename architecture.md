@@ -337,3 +337,55 @@ image.jsとimage-data.jsは承認された添付PNGのみをGET/HEADで配信す
 テスト画像・候補を実データと表示しない。既存Webhook URL・署名確認・返信APIは維持する。
 本人連携・共有許可・期限・本番用の画像保存と固定共有ページは未実装。
 手順は [LINE画像カードテスト](docs/dev/line-card-test.md) を参照。
+
+
+## 8 個人ページ・テストデータ表示（2026-10-18実装）
+
+Google認証は実行しない。今回のユーザー回答により、固定テスト予定の表示はログイン不要。実予定・DB接続前にページゲートとサーバーのrequireUserを適用する。業務保存・OperationRun・LINE送信を起動しない表示検証。DBエンティティは変更しない。
+
+~~~mermaid
+classDiagram
+  class PersonalLayout
+  class ConnectionsPage {
+    +showPlannedGoogleStep()
+  }
+  class PersonalPage
+  class MonthMap
+  class DayDetail
+  class Candidates
+  class DemoServer {
+    +getPersonalDemo()
+  }
+  class PersonalService {
+    +loadPersonalDemo(seed, now, requestId, log)
+  }
+  class PersonalFixture {
+    +readPersonalFixture(seed, today)
+  }
+  class Schedule {
+    +buildSchedule(input, today, excludedDates)
+  }
+  class Recommendation {
+    +recommendForDetails(daily, details, today, excludedDates)
+  }
+  class CalculationCore
+  PersonalLayout --> ConnectionsPage
+  PersonalLayout --> PersonalPage
+  PersonalPage --> MonthMap
+  PersonalPage --> DayDetail
+  PersonalPage --> Candidates
+  PersonalPage --> Recommendation
+  PersonalPage --> DemoServer
+  DemoServer --> PersonalService
+  PersonalService --> PersonalFixture
+  PersonalService --> Schedule
+  Schedule --> CalculationCore
+  Schedule --> Recommendation
+  Recommendation --> CalculationCore
+~~~
+
+- 画面：src/routes/me/、部品：src/components/personal/。
+- 認証とHTTP境界：src/lib/personal/server.js。サーバー専用の時計・JSON読込：demo.server.js。
+- 取得口：src/lib/adapters/personal-mock.js、固定相対予定：src/mock/personal.json。
+- 純粋な組立：src/lib/personal/（service / schedule / candidates / dates / message）。
+- Google OAuth・コールバック・任意URL取得の受付は作らない。将来は取得口と連携工程を置換する。
