@@ -44,13 +44,9 @@ export function LoginPage() {
     <AuthLayout
       icon={LogIn}
       title="りすけにログイン"
-      subtitle="まず本人確認を行い、その後でカレンダーの閲覧を許可します"
+      subtitle="Googleでログインすると、連携と予定の取得まで自動で進みます"
     >
       <GoogleButton returnTo={returnTo} />
-      <p className="mb-4 text-sm text-muted-foreground">
-        Googleログインだけでは予定は取得されません。ログイン後、本人用ページでGoogle
-        Calendarを接続してください。
-      </p>
       <OrDivider />
       <AuthError>{error}</AuthError>
       <form onSubmit={submit} className="space-y-4">

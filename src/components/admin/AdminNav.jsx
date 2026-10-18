@@ -39,6 +39,12 @@ export default function AdminNav() {
             </Link>
           ))}
         </nav>
+        <Link
+          to="/account"
+          className="shrink-0 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+        >
+          本人ページ
+        </Link>
       </div>
     </header>
   );

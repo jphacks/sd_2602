@@ -10,22 +10,29 @@ import {
   clearCalendarFlow,
 } from "@/lib/account/flow";
 import { PersonalPage } from "./PersonalPage";
+
 const labels = {
   configuration_missing: "Base44のConnector IDが未設定です。",
   configuration_invalid:
     "Connector IDの形式を確認してください。GoogleのOAuthクライアントIDとは別です。",
   connection_unconfirmed:
-    "接続は未確認です。未連携の場合は接続を開始できます。設定したConnector IDも確認してください。",
+    "Google Calendarを接続すると、このページで本人の予定を自動で読み込みます。",
   connected:
-    "Google Calendarの接続を確認しました。ボタンから本人のメインカレンダーを読み込めます。",
+    "Google Calendarの接続を確認しました。本人のメインカレンダーを自動で読み込みます。",
   unavailable:
     "接続状態を確認できませんでした。設定や通信状態を確認して再試行してください。",
 };
+
 export function AccountPage({ status }) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const [schedule, setSchedule] = useState(null);
+  const [notice, setNotice] = useState("");
+  const [framed, setFramed] = useState(null);
   const readSchedule = useServerFn(readGoogleSchedule);
+  const router = useRouter();
+  const { logout } = useAuth();
+
   async function load() {
     setBusy(true);
     setError("");
@@ -40,16 +47,20 @@ export function AccountPage({ status }) {
       setBusy(false);
     }
   }
-  const router = useRouter(),
-    { logout } = useAuth();
-  const [notice, setNotice] = useState("");
-  const [framed, setFramed] = useState(null);
+
   useEffect(() => {
     setFramed(window !== window.parent);
   }, []);
+
   useEffect(() => {
     if (status.state !== "connected") setSchedule(null);
   }, [status.state]);
+
+  // ログイン直後・接続確認後に、予定の取得まで自動で進める。
+  useEffect(() => {
+    if (status.state === "connected") load();
+  }, [status.state]);
+
   useEffect(() => {
     try {
       if (pendingCalendar(window.sessionStorage)) {
@@ -80,6 +91,7 @@ export function AccountPage({ status }) {
       document.removeEventListener("visibilitychange", refresh);
     };
   }, [router]);
+
   async function connect() {
     if (window !== window.parent) {
       setError("Googleの許可画面は別タブで開いてください。");
@@ -102,83 +114,105 @@ export function AccountPage({ status }) {
       setBusy(false);
     }
   }
-  return (
-    <>
-      <section className="personal-panel">
-        <h2>アカウントとデータ連携</h2>
-        <ol className="connection-steps" aria-label="Google連携の手順">
-          <li>1. リスケへのログイン：確認済み</li>
-          <li>
-            2. Google Calendarの閲覧許可：
-            {status.state === "connected"
-              ? "接続確認済み"
-              : "接続を確認してください"}
-          </li>
-          <li>
-            3. 予定の読込：{schedule ? "取得済み" : "まだ読み込んでいません"}
-          </li>
-        </ol>
-        {notice && <p role="status">{notice}</p>}
-        <h3>Google Calendar</h3>
+
+  const canConnect = ["connection_unconfirmed", "connected"].includes(
+    status.state,
+  );
+
+  if (status.state !== "connected") {
+    return (
+      <section className="personal-panel connection-card">
+        <div className="section-heading">
+          <h2>Google Calendar</h2>
+          <span className="status-pill">未接続</span>
+        </div>
         <p>{labels[status.state]}</p>
-        {["connection_unconfirmed", "connected"].includes(status.state) &&
-          framed && (
-            <p>
-              <a
-                className="primary-button"
-                href="/account"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                別タブでGoogle接続画面を開く
-              </a>
-            </p>
-          )}
-        {["connection_unconfirmed", "connected"].includes(status.state) &&
-          framed === false && (
+        {notice && <p role="status">{notice}</p>}
+        {canConnect && framed && (
+          <p>
+            <a
+              className="primary-button"
+              href="/account"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              別タブでGoogle接続画面を開く
+            </a>
+          </p>
+        )}
+        {canConnect && framed === false && (
+          <p>
             <button
               type="button"
               className="primary-button"
               disabled={busy}
               onClick={connect}
             >
-              {status.state === "connected"
-                ? "Google Calendarを再接続"
-                : "Google Calendarを接続"}
+              Google Calendarを接続
             </button>
-          )}
-        <button
-          type="button"
-          className="secondary-button"
-          disabled={busy}
-          onClick={() => {
-            setSchedule(null);
-            router.invalidate();
-          }}
-        >
-          接続状態を再確認
-        </button>
-        {status.state === "connected" && (
+          </p>
+        )}
+        {error && <p role="status">{error}</p>}
+        <p className="fine-print">
+          ログインとGoogleの閲覧許可は別の手順です。接続すると予定の取得まで自動で進みます。DB保存・共有は行いません。
+        </p>
+        <p>
+          <button type="button" className="secondary-button" onClick={logout}>
+            ログアウト
+          </button>
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <>
+      <details className="test-info">
+        <summary>
+          Google Calendar：
+          {busy ? "予定を取得中…" : schedule ? "接続済み・取得済み" : "接続済み"}
+        </summary>
+        <p>{labels[status.state]}</p>
+        {notice && <p role="status">{notice}</p>}
+        {error && <p role="status">{error}</p>}
+        <p>
           <button
             type="button"
-            className="primary-button"
+            className="secondary-button"
             disabled={busy}
             onClick={load}
           >
-            {busy ? "予定を読み込み中…" : "Googleの予定を読み込む"}
+            予定を再取得
+          </button>{" "}
+          {framed === false && (
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={busy}
+              onClick={connect}
+            >
+              Google Calendarを再接続
+            </button>
+          )}{" "}
+          <button type="button" className="secondary-button" onClick={logout}>
+            ログアウト
           </button>
-        )}
-        <p role="status">{error}</p>
+        </p>
         <p className="fine-print">
           メインカレンダーの今日から31日分のみ。画面を離れると再読込が必要です。DB保存・相手との共有は行いません。
         </p>
-        <p className="fine-print">
-          ログインとGoogleの閲覧許可は別の手順です。LINE紐付け・グループ共有同意・予定保存は準備中です。接続しただけで予定が共有されることはありません。
-        </p>
-        <button type="button" className="secondary-button" onClick={logout}>
-          ログアウト
-        </button>
-      </section>
+      </details>
+      {busy && !schedule && <p role="status">Googleの予定を取得しています…</p>}
+      {error && !schedule && !busy && (
+        <section className="personal-panel">
+          <p>{error}</p>
+          <p>
+            <button type="button" className="primary-button" onClick={load}>
+              再試行
+            </button>
+          </p>
+        </section>
+      )}
       {schedule && <PersonalPage key={schedule.generatedAt} data={schedule} />}
     </>
   );
