@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useServerFn } from "@tanstack/react-start";
 import { readGoogleSchedule } from "@/lib/account/server";
+import {
+  startCalendarConnection,
+  pendingCalendar,
+  clearCalendarFlow,
+} from "@/lib/account/flow";
 import { PersonalPage } from "./PersonalPage";
 const labels = {
   configuration_missing: "Base44のConnector IDが未設定です。",
@@ -37,16 +42,59 @@ export function AccountPage({ status }) {
   }
   const router = useRouter(),
     { logout } = useAuth();
+  const [notice, setNotice] = useState("");
+  const [framed, setFramed] = useState(null);
+  useEffect(() => {
+    setFramed(window !== window.parent);
+  }, []);
+  useEffect(() => {
+    if (status.state !== "connected") setSchedule(null);
+  }, [status.state]);
+  useEffect(() => {
+    try {
+      if (pendingCalendar(window.sessionStorage)) {
+        clearCalendarFlow(window.sessionStorage);
+        setNotice(
+          "Google画面から戻りました。接続状態を確認しました。未接続の場合は、許可のキャンセルや設定をご確認ください。",
+        );
+      }
+    } catch {
+      /* Storage is optional. */
+    }
+    let checking = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible" || checking) return;
+      checking = true;
+      try {
+        await router.invalidate();
+      } catch {
+        setError("接続状態を更新できませんでした。再確認してください。");
+      } finally {
+        checking = false;
+      }
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [router]);
   async function connect() {
+    if (window !== window.parent) {
+      setError("Googleの許可画面は別タブで開いてください。");
+      return;
+    }
     setBusy(true);
     setError("");
+    setSchedule(null);
     try {
-      const destination = await base44.connectors.connectAppUser(
-        status.connectorId,
-      );
-      const url = new URL(destination);
-      if (url.protocol !== "https:") throw new Error("INVALID_OAUTH_URL");
-      window.location.assign(url.href);
+      await startCalendarConnection({
+        connectorId: status.connectorId,
+        connect: (id) => base44.connectors.connectAppUser(id),
+        storage: window.sessionStorage,
+        redirect: (url) => window.location.assign(url),
+      });
     } catch {
       setError(
         "接続を開始できませんでした。設定を確認して再試行してください。",
@@ -58,21 +106,47 @@ export function AccountPage({ status }) {
     <>
       <section className="personal-panel">
         <h2>アカウントとデータ連携</h2>
-        <p>本人のログインを確認しました。</p>
+        <ol className="connection-steps" aria-label="Google連携の手順">
+          <li>1. リスケへのログイン：確認済み</li>
+          <li>
+            2. Google Calendarの閲覧許可：
+            {status.state === "connected"
+              ? "接続確認済み"
+              : "接続を確認してください"}
+          </li>
+          <li>
+            3. 予定の読込：{schedule ? "取得済み" : "まだ読み込んでいません"}
+          </li>
+        </ol>
+        {notice && <p role="status">{notice}</p>}
         <h3>Google Calendar</h3>
         <p>{labels[status.state]}</p>
-        {["connection_unconfirmed", "connected"].includes(status.state) && (
-          <button
-            type="button"
-            className="primary-button"
-            disabled={busy}
-            onClick={connect}
-          >
-            {status.state === "connected"
-              ? "Google Calendarを再接続"
-              : "Google Calendarを接続"}
-          </button>
-        )}
+        {["connection_unconfirmed", "connected"].includes(status.state) &&
+          framed && (
+            <p>
+              <a
+                className="primary-button"
+                href="/account"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                別タブでGoogle接続画面を開く
+              </a>
+            </p>
+          )}
+        {["connection_unconfirmed", "connected"].includes(status.state) &&
+          framed === false && (
+            <button
+              type="button"
+              className="primary-button"
+              disabled={busy}
+              onClick={connect}
+            >
+              {status.state === "connected"
+                ? "Google Calendarを再接続"
+                : "Google Calendarを接続"}
+            </button>
+          )}
         <button
           type="button"
           className="secondary-button"

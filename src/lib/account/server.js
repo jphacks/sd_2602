@@ -12,7 +12,12 @@ export const getConnectionStatus = createServerFn({ method: "GET" })
   .middleware([privateResponse, requireUser])
   .handler(async ({ context }) => {
     const { secrets } = await import("base44:runtime");
-    const connectorId = await secrets.get("GOOGLE_CALENDAR_CONNECTOR_ID");
+    let connectorId;
+    try {
+      connectorId = await secrets.get("GOOGLE_CALENDAR_CONNECTOR_ID");
+    } catch {
+      return { state: "unavailable" };
+    }
     return connectionStatus({
       connectorId,
       connectors: {

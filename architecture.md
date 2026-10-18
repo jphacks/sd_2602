@@ -492,3 +492,18 @@ classDiagram
 ```
 
 /me/previewは匿名で利用できる固定データ専用経路。受け付けるのは3種類のscenarioのみ。実Connector・secret・DB・ネットワークへ接続しない。予定ありと0件はready、2ページ目失敗はfailedで部分結果なし。切替開始時に以前の結果を破棄。本人用/accountから自分の予定へ戻るリンクは/accountを維持し、2人比較はテストと明示。
+
+
+## Google本人認証とCalendar認可の復帰
+```mermaid
+classDiagram
+ LoginPage --> GoogleButton : 同一originの戻り先
+ GoogleButton --> Base44Auth : loginWithProvider google
+ AccountPage --> CalendarFlow : 認可開始・10分の復帰目印
+ CalendarFlow --> AppUserConnector : connectAppUser
+ CalendarReturn --> AccountPage : ホームへ復帰した場合のみ
+ AccountPage --> AccountServer : 接続状態を再照会
+ AccountServer --> CurrentAppUserConnection : requireUser後
+```
+
+復帰目印はsessionStorageの日時と固定/accountだけで、認可・本人確認の証明ではない。接続成功はサーバーの本人接続トークンの存在で判断。state生成・OAuth交換・ポップアップ通信はSDK/Base44に委ねる。
