@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { PersonalFooter } from "@/components/personal/PersonalFooter";
 import "./personal.css";
 import "./responsive.css";
 
@@ -28,6 +29,7 @@ export function PersonalLayout({ children }) {
         </Link>
       </header>
       <main className="personal-main">{children}</main>
+      <PersonalFooter />
     </div>
   );
 }

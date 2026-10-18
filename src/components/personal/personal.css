@@ -470,6 +470,29 @@
   padding: 12px !important;
   color: var(--text-sub);
 }
+.personal-footer {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 0.85rem;
+}
+.personal-footer a {
+  color: var(--text-sub);
+  text-decoration: none;
+  padding: 4px 0;
+}
+.personal-footer a:hover {
+  color: var(--btn-main);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.personal-footer a[aria-current="page"] {
+  color: var(--btn-main);
+  font-weight: 700;
+}
 @media (max-width: 900px) {
   .calendar-layout {
     flex-direction: column;
