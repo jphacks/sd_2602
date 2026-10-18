@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authed")({
   beforeLoad: requireSignedIn,
   errorComponent: AuthGateError,
   component: () => (
-    <PersonalLayout>
+    <PersonalLayout demo={false}>
       <Outlet />
     </PersonalLayout>
   ),

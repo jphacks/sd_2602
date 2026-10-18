@@ -23,3 +23,24 @@ export const getConnectionStatus = createServerFn({ method: "GET" })
       },
     });
   });
+
+// Explicit user action; no owner/calendar/URL input is accepted.
+export const readGoogleSchedule = createServerFn({ method: "POST" })
+  .middleware([privateResponse, requireUser])
+  .handler(async ({ context }) => {
+    const { secrets } = await import("base44:runtime");
+    const { loadGoogleSchedule } = await import("../google/service.js");
+    try {
+      return await loadGoogleSchedule({
+        connectorId: await secrets.get("GOOGLE_CALENDAR_CONNECTOR_ID"),
+        getConnection: (id) =>
+          context
+            .getBase44()
+            .asServiceRole.connectors.getCurrentAppUserConnection(id),
+        requestId: crypto.randomUUID(),
+        log: (entry) => console.info(JSON.stringify(entry)),
+      });
+    } catch {
+      return { state: "failed", code: "CALENDAR_LOAD_FAILED" };
+    }
+  });

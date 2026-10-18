@@ -117,3 +117,18 @@ DTOは、受け渡す相手に必要な項目だけをまとめたデータ。DB
 ## 最新の候補・接続契約
 recommendForDetails(daily, details, today, excludedDates, activityWindow) はselectPairと同じ空き時間の評価を使い、終日予定日を除外して日付順の候補を返す。古いselect(daily, options)は互換用の純関数として残るが、現画面の候補選出では使わない。selectShareはサーバー候補と選択集合の積を作り、元の比較版を維持する。
 getConnectionStatusは入力IDなし・requireUser付きGET。秘密設定のGOOGLE_CALENDAR_CONNECTOR_IDを利用し、返すのは状態と非秘密のConnector IDだけ。トークンや接続設定は返さない。404は未連携と誤設定を区別できないためconnection_unconfirmed。未設定・GoogleクライアントIDの誤指定では外部コネクタを呼ばない。
+
+
+## Google取得と演算への受け渡し（2026-10-18）
+
+```mermaid
+classDiagram
+ AccountPage --> AccountServer : readGoogleSchedule POST
+ AccountServer --> GoogleService : requireUser・本人の接続
+ GoogleService --> GoogleEvents : primary 31日・全ページ
+ GoogleService --> GoogleAdapter : 最小項目へ変換
+ GoogleService --> PersonalSchedule : buildSchedule
+ PersonalSchedule --> AccountPage : 本人用一覧・詳細・候補
+```
+
+認可とトークン取得はBase44 App user connector。Google events.listは期間指定・singleEvents・Asia/Tokyo、最大20ページ（各2500件）・各15秒。上限・途中失敗・不正データでは部分結果を返さない。取消と重複IDを除去、日時はオフセット必須、終日の終了日は排他的。自己参加状態を優先し、自己主催で参加状態がない予定はaccepted、それ以外の不明はneedsAction。既存acceptedのみの演算を維持。予定名・本文・場所・参加者ID・トークンはDTOとログに含めない。DB保存なし。公開テスト経路は変更なし。

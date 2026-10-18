@@ -67,9 +67,15 @@ export function PersonalPage({ data }) {
         />
       )}
       <details className="test-info">
-        <summary>テストデータ・連携について</summary>
+        <summary>
+          {data.source === "google"
+            ? "取得データについて"
+            : "テストデータ・連携について"}
+        </summary>
         <p className="fine-print">
-          今日から31日間・日本時間・活動時間09:00〜22:00。Google接続・予定の保存・LINE送信は未接続です。
+          {data.source === "google"
+            ? "Googleのメインカレンダーを取得した時点の31日分・日本時間・活動時間09:00〜22:00。承諾済みまたは本人主催の予定を評価します。保存・自動更新・LINE共有は行いません。"
+            : "今日から31日間・日本時間・活動時間09:00〜22:00。固定テストデータです。予定の保存・LINE送信は未接続です。"}
         </p>
       </details>
     </>

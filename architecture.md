@@ -463,3 +463,18 @@ classDiagram
 ```
 
 /me と /me/pair は固定テスト専用。/account は認証後に接続状態だけを返し、トークンは返さない。Google実取得・保存・LINE連携はまだ接続しない。公開確認はHTTP200だけでなく本アプリ固有マーカーを見る。最新合意はdocs/spec/current.md。
+
+
+## Google取得と演算への受け渡し（2026-10-18）
+
+```mermaid
+classDiagram
+ AccountPage --> AccountServer : readGoogleSchedule POST
+ AccountServer --> GoogleService : requireUser・本人の接続
+ GoogleService --> GoogleEvents : primary 31日・全ページ
+ GoogleService --> GoogleAdapter : 最小項目へ変換
+ GoogleService --> PersonalSchedule : buildSchedule
+ PersonalSchedule --> AccountPage : 本人用一覧・詳細・候補
+```
+
+認可とトークン取得はBase44 App user connector。Google events.listは期間指定・singleEvents・Asia/Tokyo、最大20ページ（各2500件）・各15秒。上限・途中失敗・不正データでは部分結果を返さない。取消と重複IDを除去、日時はオフセット必須、終日の終了日は排他的。自己参加状態を優先し、自己主催で参加状態がない予定はaccepted、それ以外の不明はneedsAction。既存acceptedのみの演算を維持。予定名・本文・場所・参加者ID・トークンはDTOとログに含めない。DB保存なし。公開テスト経路は変更なし。

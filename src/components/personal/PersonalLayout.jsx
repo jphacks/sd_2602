@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import "./personal.css";
 import "./responsive.css";
-export function PersonalLayout({ children }) {
+export function PersonalLayout({ children, demo = true }) {
   return (
     <div className="personal-shell">
       <header className="personal-header">
@@ -22,10 +22,12 @@ export function PersonalLayout({ children }) {
         </nav>
         <Link
           className="header-connection"
-          to="/me/connections"
-          aria-label="データ連携（テストデータを表示中）"
+          to={demo ? "/me/connections" : "/account"}
+          aria-label={
+            demo ? "データ連携（テストデータを表示中）" : "本人のデータ連携"
+          }
         >
-          連携 <small>テスト</small>
+          連携 <small>{demo ? "テスト" : "本人用"}</small>
         </Link>
       </header>
       <main className="personal-main">{children}</main>
