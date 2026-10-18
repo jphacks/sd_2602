@@ -1,78 +1,50 @@
-import { clock, dateLabel } from "@/lib/personal/dates";
-
-export function DayDetail({
-  day,
-  today,
-  window,
-  excluded,
-  onExclude,
-  onClose,
-}) {
+import { dateLabel } from "@/lib/personal/dates";
+import { Timeline } from "./Timeline";
+export function DayDetail({ day, today, window, excluded, onExclude }) {
+  const content = (
+    <>
+      {day.allDayCount > 0 && (
+        <p className="all-day-note">終日予定あり（{day.allDayCount}件）</p>
+      )}
+      <Timeline
+        people={[{ key: "self", label: "自分", periods: day.periods }]}
+        window={window}
+      />
+    </>
+  );
   return (
     <section className="personal-panel day-panel" aria-label="選択日の詳細">
-      <div className="section-heading">
-        <h2>SELECTED DAY</h2>
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="日別詳細を閉じる"
-          onClick={onClose}
-        >
-          ×
-        </button>
-      </div>
-      <p className="schedule-date">
-        {day.date.slice(0, 4)}年{dateLabel(day.date)}
-      </p>
+      <h2 className="desktop-selected-title">SELECTED DAY</h2>
+      <p className="schedule-date">{dateLabel(day.date)}の予定</p>
       <p className="schedule-summary">
-        多忙度: {Math.round(day.busyRatio * 100)}%
+        多忙度：{Math.round(day.busyRatio * 100)}%
       </p>
-      {day.allDayCount > 0 && (
-        <div className="all-day-note">
-          <strong>終日予定あり（{day.allDayCount}件）</strong>
-          <p>
-            日別は件数によらず6時間換算。空き時間は要確認です。時間帯には割り当てません。
-          </p>
+      <div className="solo-meter">
+        <span>自分</span>
+        <div>
+          <i style={{ width: day.busyRatio * 100 + "%" }} />
         </div>
-      )}
-      {day.periods.length > 0 && (
-        <p className="period-list">
-          予定：
-          {day.periods
-            .map((p) => clock(p.startMinute) + "〜" + clock(p.endMinute))
-            .join("、")}
-        </p>
-      )}
-      <h3>時間帯別の空き状況</h3>
-      <p className="fine-print">
-        活動時間 {clock(window.startMinute)}–{clock(window.endMinute)}
-        {day.allDayCount
-          ? "。終日予定を除く集計です。予定のない枠も空きの確定を意味しません。"
-          : ""}
-      </p>
-      <div className="timeline">
-        {day.slots.map((slot) => (
-          <div className="time-row" key={slot.slotStart}>
-            <time>{slot.slotStart.slice(11, 16)}</time>
-            <span className={slot.busyMinutes ? "has-event" : "empty"}>
-              {slot.busyMinutes
-                ? "予定あり（" + slot.busyMinutes + "分）"
-                : "予定なし"}
-            </span>
-          </div>
-        ))}
+        <b>{Math.round(day.busyRatio * 100)}%</b>
       </div>
-      <button
-        type="button"
-        className="secondary-button exclude-button"
-        disabled={day.date <= today}
-        onClick={onExclude}
-      >
-        {excluded ? "候補からの除外を解除" : "この日を候補から除外"}
-      </button>
-      <p className="fine-print">
-        今日・過去日は候補に含めません。除外はこのページ内のみで、再読込すると戻ります。
-      </p>
+      <div className="desktop-timeline timeline-card">{content}</div>
+      <details className="mobile-timeline">
+        <summary>時間帯の詳細を見る</summary>
+        {content}
+      </details>
+      <details className="day-options">
+        <summary>候補日の設定</summary>
+        <button
+          type="button"
+          className="secondary-button exclude-button"
+          disabled={day.date <= today}
+          onClick={onExclude}
+        >
+          {excluded ? "候補からの除外を解除" : "この日を候補から除外"}
+        </button>
+        <p className="fine-print">
+          終日予定は1日6時間換算。時間帯には割り当てません。除外設定は再読み込みすると戻ります。
+        </p>
+      </details>
     </section>
   );
 }

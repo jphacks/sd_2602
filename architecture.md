@@ -389,3 +389,63 @@ classDiagram
 - 取得口：src/lib/adapters/personal-mock.js、固定相対予定：src/mock/personal.json。
 - 純粋な組立：src/lib/personal/（service / schedule / candidates / dates / message）。
 - Google OAuth・コールバック・任意URL取得の受付は作らない。将来は取得口と連携工程を置換する。
+
+## 9. 2人比較の固定テスト実装（2026-10-18）
+
+実共有の認証・DB・LINE連携は未実装。現在は固定テストの安全な共有DTOを使う。
+
+```mermaid
+classDiagram
+  class PairDemoServer {
+    readPairDemo()
+  }
+  class PairSelector {
+    selectPair()
+    freeTime()
+  }
+  class ShareDTO {
+    version
+    generatedAt
+    days
+    candidates
+  }
+  class PairPage
+  class PairCalendar
+  class PairDetail
+  class ShareCard
+  class CalendarImage {
+    calendarPng()
+  }
+  class ShareText {
+    shortSchedule()
+    shareMessage()
+  }
+  PairDemoServer --> PairSelector : private periods
+  PairDemoServer --> ShareDTO : buildShare
+  PairPage --> ShareDTO
+  PairPage --> PairCalendar
+  PairPage --> PairDetail
+  PairPage --> ShareCard
+  PairPage --> ShareText
+  ShareCard --> CalendarImage
+  ShareCard --> ShareText
+  CalendarImage --> ShareDTO
+```
+
+## 10. PC・スマホ共通の表示部品
+
+```mermaid
+classDiagram
+  PersonalPage --> DayDetail
+  PersonalPage --> Candidates
+  PairPage --> PairDetail
+  PairPage --> MessageComposer
+  Candidates --> MessageComposer
+  DayDetail --> Timeline
+  PairDetail --> Timeline
+  MonthMap --> CalendarLegend
+  PairCalendar --> CalendarLegend
+  MessageComposer --> MessageActions
+```
+
+Timelineは表示専用で選出計算を行わない。MessageComposerはPC文面欄とスマホの固定バー・連絡文ダイアログを同じ選択状態で表示する。レスポンシブ表示はresponsive.cssへ分離。

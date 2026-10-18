@@ -1,6 +1,6 @@
 import { dateLabel } from "@/lib/personal/dates";
 
-const levels = ["空き", "余裕", "普通", "多忙"];
+import { CalendarLegend, Weekdays } from "./CalendarLegend";
 const monthColors = [
   "#f472b6",
   "#fb7185",
@@ -29,20 +29,13 @@ export function MonthMap({ daily, today, selectedDate, excluded, onSelect }) {
           {dateLabel(daily[0].date)} — {dateLabel(daily.at(-1).date)}
         </span>
       </h2>
-      <div className="calendar-legend" aria-label="多忙度の凡例">
-        <strong>多忙度：</strong>
-        {levels.map((label, index) => (
-          <span key={label}>
-            <i className={"level-" + index} />
-            {label}
-          </span>
-        ))}
-      </div>
+      <CalendarLegend />
+      <Weekdays />
       <div className="month-grid">
         {Array.from({ length: padding }, (_, i) => (
           <span key={"pad-" + i} />
         ))}
-        {daily.map((day, index) => {
+        {daily.map((day) => {
           const month = Number(day.date.slice(5, 7));
           const date = Number(day.date.slice(8));
           return (
@@ -66,7 +59,7 @@ export function MonthMap({ daily, today, selectedDate, excluded, onSelect }) {
               }
               onClick={() => onSelect(day.date)}
             >
-              {(index === 0 || date === 1) && (
+              {(day.date === today || date === 1) && (
                 <small className="month-label">{month}月</small>
               )}
               <span className="day-number">{date}</span>

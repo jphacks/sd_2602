@@ -1,17 +1,32 @@
 import { Link } from "@tanstack/react-router";
 import "./personal.css";
-
+import "./responsive.css";
 export function PersonalLayout({ children }) {
   return (
     <div className="personal-shell">
       <header className="personal-header">
-        <h1>りすけ</h1>
-        <p>操作の手間を極限まで減らした日程調整ツール</p>
-        <div className="demo-status">
-          テストデータを表示中・Google未連携 <span aria-hidden="true">｜</span>{" "}
-          <Link to="/me/connections">データ連携・今後の開発予定</Link>{" "}
-          <span aria-hidden="true">｜</span> <Link to="/me">個人ページ</Link>
+        <div className="brand-row">
+          <h1>りすけ</h1>
         </div>
+        <nav className="mode-switch" aria-label="調整モード">
+          <Link
+            to="/me"
+            activeOptions={{ exact: true }}
+            activeProps={{ "aria-current": "page" }}
+          >
+            自分だけ
+          </Link>
+          <Link to="/me/pair" activeProps={{ "aria-current": "page" }}>
+            相手と調整
+          </Link>
+        </nav>
+        <Link
+          className="header-connection"
+          to="/me/connections"
+          aria-label="データ連携（テストデータを表示中）"
+        >
+          連携 <small>テスト</small>
+        </Link>
       </header>
       <main className="personal-main">{children}</main>
     </div>

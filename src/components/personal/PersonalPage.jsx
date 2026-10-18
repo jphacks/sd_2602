@@ -3,59 +3,27 @@ import { recommendForDetails } from "@/lib/personal/candidates";
 import { MonthMap } from "./MonthMap";
 import { DayDetail } from "./DayDetail";
 import { Candidates } from "./Candidates";
-
 export function PersonalPage({ data }) {
-  const [selectedDate, setSelectedDate] = useState(data.today);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [excluded, setExcluded] = useState([]);
-  const [shortcut, setShortcut] = useState("");
-  const [showCandidates, setShowCandidates] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(data.today),
+    [excluded, setExcluded] = useState([]),
+    [showCandidates, setShowCandidates] = useState(false);
   const day = data.details.find((d) => d.date === selectedDate);
   const candidates = useMemo(
     () =>
       recommendForDetails(data.daily, data.details, data.today, excluded)
-        .candidates,
+        .candidates.slice()
+        .sort((a, b) => a.date.localeCompare(b.date)),
     [data, excluded],
   );
-  const signature = candidates.map((c) => c.date).join(",");
-  function changeShortcut(value) {
-    setShortcut(value);
-    setShowCandidates(
-      ["りすけ", "リスケ", "risuke"].includes(value.trim().toLowerCase()),
-    );
-  }
   function toggleExclusion() {
-    setExcluded((dates) =>
-      dates.includes(selectedDate)
-        ? dates.filter((date) => date !== selectedDate)
-        : [...dates, selectedDate],
+    setExcluded((ds) =>
+      ds.includes(selectedDate)
+        ? ds.filter((d) => d !== selectedDate)
+        : [...ds, selectedDate],
     );
   }
   return (
     <>
-      <section className="personal-panel shortcut-panel">
-        <h2>ショートカット入力</h2>
-        <label className="sr-only" htmlFor="risuke-shortcut">
-          ショートカット入力
-        </label>
-        <input
-          id="risuke-shortcut"
-          placeholder="ここに入力（例: りすけ）"
-          value={shortcut}
-          maxLength={40}
-          onChange={(e) => changeShortcut(e.target.value)}
-        />
-        <p className="hint">
-          ヒント：「りすけ」と入力すると、空き時間が多い上位3日を即座に提示します。
-        </p>
-      </section>
-      {showCandidates && (
-        <Candidates
-          key={signature}
-          candidates={candidates}
-          details={data.details}
-        />
-      )}
       <div className="calendar-layout">
         <MonthMap
           daily={data.daily}
@@ -65,29 +33,39 @@ export function PersonalPage({ data }) {
           onSelect={setSelectedDate}
         />
         <div className="schedule-wrapper">
-          {detailOpen ? (
-            <DayDetail
-              day={day}
-              today={data.today}
-              window={data.activityWindow}
-              excluded={excluded.includes(selectedDate)}
-              onExclude={toggleExclusion}
-              onClose={() => setDetailOpen(false)}
-            />
-          ) : (
-            <button
-              type="button"
-              className="secondary-button detail-prompt"
-              onClick={() => setDetailOpen(true)}
-            >
-              選択日のスケジュール
-            </button>
-          )}
+          <DayDetail
+            day={day}
+            today={data.today}
+            window={data.activityWindow}
+            excluded={excluded.includes(selectedDate)}
+            onExclude={toggleExclusion}
+          />
         </div>
       </div>
-      <p className="fine-print source-note">
-        テストデータ：今日から31日間・日本時間（Asia/Tokyo）・活動時間09:00–22:00。予定の保存・Google接続・LINE送信は行いません。
-      </p>
+      <section className="personal-panel find-panel">
+        <h2>候補日を探す</h2>
+        <button
+          className="primary-button find-button"
+          type="button"
+          onClick={() => setShowCandidates(true)}
+        >
+          おすすめの候補日を探す
+        </button>
+        <p className="hint">空きが多い日を3つ提案します</p>
+      </section>
+      {showCandidates && (
+        <Candidates
+          key={candidates.map((c) => c.date).join(",")}
+          candidates={candidates}
+          details={data.details}
+        />
+      )}
+      <details className="test-info">
+        <summary>テストデータ・連携について</summary>
+        <p className="fine-print">
+          今日から31日間・日本時間・活動時間09:00〜22:00。Google接続・予定の保存・LINE送信は未接続です。
+        </p>
+      </details>
     </>
   );
 }
