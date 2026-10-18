@@ -132,3 +132,17 @@ classDiagram
 ```
 
 認可とトークン取得はBase44 App user connector。Google events.listは期間指定・singleEvents・Asia/Tokyo、最大20ページ（各2500件）・各15秒。上限・途中失敗・不正データでは部分結果を返さない。取消と重複IDを除去、日時はオフセット必須、終日の終了日は排他的。自己参加状態を優先し、自己主催で参加状態がない予定はaccepted、それ以外の不明はneedsAction。既存acceptedのみの演算を維持。予定名・本文・場所・参加者ID・トークンはDTOとログに含めない。DB保存なし。公開テスト経路は変更なし。
+
+
+## 固定応答プレビュー
+
+```mermaid
+classDiagram
+ PreviewPage --> PreviewServer : success・empty・failure
+ PreviewServer --> GooglePreview : 固定テストのみ
+ GooglePreview --> GoogleService : トークン取得と通信だけ固定
+ GoogleService --> PersonalSchedule : 既存の変換・演算
+ PreviewPage --> PersonalPage : 同じ一覧・詳細・候補UI
+```
+
+/me/previewは匿名で利用できる固定データ専用経路。受け付けるのは3種類のscenarioのみ。実Connector・secret・DB・ネットワークへ接続しない。予定ありと0件はready、2ページ目失敗はfailedで部分結果なし。切替開始時に以前の結果を破棄。本人用/accountから自分の予定へ戻るリンクは/accountを維持し、2人比較はテストと明示。

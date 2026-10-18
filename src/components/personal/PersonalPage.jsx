@@ -68,14 +68,18 @@ export function PersonalPage({ data }) {
       )}
       <details className="test-info">
         <summary>
-          {data.source === "google"
-            ? "取得データについて"
-            : "テストデータ・連携について"}
+          {data.source === "google-preview"
+            ? "プレビューについて"
+            : data.source === "google"
+              ? "取得データについて"
+              : "テストデータ・連携について"}
         </summary>
         <p className="fine-print">
-          {data.source === "google"
-            ? "Googleのメインカレンダーを取得した時点の31日分・日本時間・活動時間09:00〜22:00。承諾済みまたは本人主催の予定を評価します。保存・自動更新・LINE共有は行いません。"
-            : "今日から31日間・日本時間・活動時間09:00〜22:00。固定テストデータです。予定の保存・LINE送信は未接続です。"}
+          {data.source === "google-preview"
+            ? "Google形式の固定応答を共通の変換・演算で処理したプレビューです。実予定ではありません。31日分・日本時間・活動時間09:00〜22:00。"
+            : data.source === "google"
+              ? "Googleのメインカレンダーを取得した時点の31日分・日本時間・活動時間09:00〜22:00。承諾済みまたは本人主催の予定を評価します。保存・自動更新・LINE共有は行いません。"
+              : "今日から31日間・日本時間・活動時間09:00〜22:00。固定テストデータです。予定の保存・LINE送信は未接続です。"}
         </p>
       </details>
     </>

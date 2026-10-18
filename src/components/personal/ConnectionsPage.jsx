@@ -14,8 +14,8 @@ export function ConnectionsPage() {
           <span className="status-pill">実接続の確認前</span>
         </div>
         <p>
-          GoogleのOAuth設定は登録済みとのご申告があります。利用者ごとの接続にはBase44のConnector
-          IDが必要です。テスト画面はログイン不要で、実予定を読み取りません。
+          利用者ごとのGoogle接続設定とConnector
+          IDはBase44に登録済みです。本人の認可と実予定取得の通し確認はこれから行います。テスト画面は実予定を読み取りません。
         </p>
         <Link className="primary-button" to="/account">
           ログインして接続状態を確認
@@ -31,11 +31,9 @@ export function ConnectionsPage() {
           <li>
             <b>2</b>
             <div>
-              <strong>
-                Googleで閲覧を許可する <small>今後実装予定</small>
-              </strong>
+              <strong>Googleで閲覧を許可する</strong>
               <p>
-                本人の同意を得て、カレンダーを読み取る工程を追加する予定です。
+                本人用画面からGoogle認可を開始し、予定を読み込めます。実接続は検証前です。
               </p>
             </div>
           </li>
@@ -43,12 +41,14 @@ export function ConnectionsPage() {
             <b>3</b>
             <div>
               <strong>一覧・詳細・候補を確認する</strong>
-              <p>現在は、この先の体験をテストデータで試せます。</p>
+              <p>
+                固定応答のプレビューで、一覧・詳細・候補への受け渡しを確認できます。
+              </p>
             </div>
           </li>
         </ol>
-        <Link className="primary-button" to="/me">
-          テストデータで試す <span aria-hidden="true">→</span>
+        <Link className="primary-button" to="/me/preview">
+          連携プレビューを開く <span aria-hidden="true">→</span>
         </Link>
         <p className="fine-print">
           この操作でGoogle連携済みにはなりません。実際の予定やアカウント情報は取得しません。
@@ -58,9 +58,9 @@ export function ConnectionsPage() {
         <p className="eyebrow">COMING NEXT</p>
         <h2>今後の開発予定</h2>
         <ul>
-          <li>Google Calendarの利用者ごとの認可・キャンセル・再認可</li>
-          <li>読み取り権限と認証情報の安全な保管</li>
-          <li>実予定の全件取得・更新・連携解除</li>
+          <li>Google Calendarの実認可・再認可の通し確認と連携解除</li>
+          <li>ローカルとBase44プレビューの認証・設定参照の確認</li>
+          <li>実予定取得の検証と更新操作の確認</li>
           <li>完成した計算結果の保存とLINE共有への接続</li>
         </ul>
       </section>

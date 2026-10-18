@@ -10,14 +10,14 @@ export function PersonalLayout({ children, demo = true }) {
         </div>
         <nav className="mode-switch" aria-label="調整モード">
           <Link
-            to="/me"
+            to={demo ? "/me" : "/account"}
             activeOptions={{ exact: true }}
             activeProps={{ "aria-current": "page" }}
           >
-            自分だけ
+            {demo ? "自分だけ（テスト）" : "自分の予定"}
           </Link>
           <Link to="/me/pair" activeProps={{ "aria-current": "page" }}>
-            相手と調整
+            相手と調整（テスト）
           </Link>
         </nav>
         <Link
