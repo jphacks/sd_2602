@@ -1,3 +1,6 @@
+import {readPersonalFixture} from "../src/lib/adapters/personal-mock.js";
+import {buildSchedule} from "../src/lib/personal/schedule.js";
+import {shortSchedule} from "../src/lib/pair/share.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -40,8 +43,8 @@ test("candidate cards share the image, identify candidates and post test proposa
   const more = cards.at(-1);
   assert.equal(more.footer.contents[0].action.type, "uri");
   assert.equal(more.footer.contents[0].action.uri, DEMO_SNAPSHOT.moreUrl);
-  assert.equal(new URL(DEMO_SNAPSHOT.moreUrl).hostname, "example.com");
-  assert.match(more.body.contents[1].text, /準備中/);
+  assert.equal(DEMO_SNAPSHOT.moreUrl, "https://sync-engine-copy-49e423a5.base44.app/me");
+  assert.match(more.body.contents[1].text, /テスト用カレンダー/);
 });
 
 test("too many candidates and mismatched image versions fail instead of mixing results", () => {
@@ -70,4 +73,12 @@ test("image URL requires the exact fixture and version; HEAD returns no body", a
   const head = demoImageResponse(new Request(DEMO_SNAPSHOT.imageUrl, { method: "HEAD" }));
   assert.equal(head.status, 200);
   assert.equal((await head.arrayBuffer()).byteLength, 0);
+});
+
+test('LINE candidates match the personal Web fixture calculation on the preparation date',()=>{
+ const seed=JSON.parse(readFileSync(new URL('../src/mock/personal.json',import.meta.url)));
+ const input=readPersonalFixture(seed,DEMO_SNAPSHOT.generatedDate),schedule=buildSchedule(input,DEMO_SNAPSHOT.generatedDate);
+ assert.deepEqual(DEMO_SNAPSHOT.candidates.map(c=>c.date),schedule.candidates.map(c=>c.date));
+ for(const c of DEMO_SNAPSHOT.candidates){const day=schedule.details.find(d=>d.date===c.date);assert.equal(c.busy,shortSchedule({...day,allDay:day.allDayCount>0}));}
+ assert.ok(!JSON.stringify(buildDemoMessages()).includes('それ以外の活動時間内は空いています'));
 });

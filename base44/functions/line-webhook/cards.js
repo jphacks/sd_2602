@@ -1,17 +1,15 @@
+import candidateData from "./candidates-data.json" with { type: "json" };
 // Fixed, synthetic data for the approved image test; never reads personal schedules.
 export const DEMO_VERSION = "image-demo-v1";
 export const DEMO_SNAPSHOT = {
   version: DEMO_VERSION,
   imageVersion: DEMO_VERSION,
   imageUrl: `https://base44.app/api/apps/6ad3509425cadbfc49e423a5/functions/line-webhook?asset=calendar&version=${DEMO_VERSION}`,
-  moreUrl: `https://example.com/?risuke_demo=${DEMO_VERSION}`,
-  activityWindow: "09:00〜22:00",
+  moreUrl: "https://sync-engine-copy-49e423a5.base44.app/me",
+  activityWindow: candidateData.activityWindow,
+  generatedDate: candidateData.today,
   timezone: "Asia/Tokyo",
-  candidates: [
-    { id: "demo-19", dateLabel: "テスト月19日", busy: "13:00〜14:00" },
-    { id: "demo-24", dateLabel: "テスト月24日", busy: "16:00〜18:00" },
-    { id: "demo-29", dateLabel: "テスト月29日", busy: "10:00〜11:00" },
-  ],
+  candidates: candidateData.candidates,
 };
 
 function text(content, options = {}) {
@@ -42,19 +40,19 @@ function candidateCard(snapshot, candidate) {
   return bubble(snapshot, [
     text(`候補ID：${candidate.id}`, { size: "xs", color: "#777777" }),
     text(candidate.dateLabel, { size: "xl", weight: "bold", color: "#225B35" }),
-    text(`【仮データ】${candidate.busy}は予定があり、それ以外の活動時間内は空いています。`, { size: "sm" }),
-    text(`活動時間 ${snapshot.activityWindow}\n${snapshot.timezone}／画像の年月は未設定`, { size: "xs", color: "#777777" }),
+    text(`【テスト予定】自分：${candidate.busy}`, { size: "sm" }),
+    text(`活動時間 ${snapshot.activityWindow}\n${snapshot.timezone}／候補の生成日：${snapshot.generatedDate}`, { size: "xs", color: "#777777" }),
   ], {
     type: "message", label: "この候補を提案する",
-    text: `【テスト提案】${candidate.dateLabel}は${candidate.busy}以外の活動時間（${snapshot.activityWindow}、${snapshot.timezone}）なら予定を入れられます。`,
+    text: `【テスト提案】${candidate.dateLabel}はいかがでしょうか。自分：${candidate.busy}。活動時間 ${snapshot.activityWindow}（${snapshot.timezone}）。候補の提案であり確定ではありません。`,
   });
 }
 
 function moreCard(snapshot) {
   return bubble(snapshot, [
     text("もっと見る", { size: "xl", weight: "bold", color: "#225B35" }),
-    text("共有ページは準備中です。今回はボタンと画像の表示を確認します。", { size: "sm" }),
-    text("このボタンは仮URLを開きます。", { size: "xs", color: "#777777" }),
+    text("Webのテスト用カレンダーを開きます。", { size: "sm" }),
+    text("候補は生成日のWebテスト予定から選出しています。画像は従来の表示確認用です。", { size: "xs", color: "#777777" }),
   ], { type: "uri", label: "もっと見る", uri: snapshot.moreUrl });
 }
 
