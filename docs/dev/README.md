@@ -68,10 +68,11 @@ SIGNATURE_INVALIDは署名不正、LINE_NOT_CONFIGUREDは秘密未設定、LINE_
 
 ~~~bash
 npx base44 build
-npx base44 deploy --no-build
+$env:BASE44_DEPLOYMENTS_API = "1"
+npx base44 site deploy --no-build -y
 ~~~
 
-buildはアプリIDを注入します。全体deployはエンティティ等も反映するため、関数の編集だけなら第3節の手順を使います。
+buildはアプリIDを注入します。このTanStack Start構成はSSR Workerを含むため、CLI 0.1.32ではBASE44_DEPLOYMENTS_API=1でサイト専用の公開経路を使います。通常のsite deployは静的アーカイブとして扱われ、Missing index.html at root of archiveで失敗します。全体deployはエンティティ・コネクタ等も同期するため、画面の公開には使いません。関数だけの編集は第3節を参照してください。
 リンク先・権限・[公開条件](../spec/checks.md)を確認して実行します。
 
 ## 関連資料
