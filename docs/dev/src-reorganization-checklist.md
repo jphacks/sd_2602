@@ -121,3 +121,6 @@ CalendarLegend、Timeline、MessageComposerは比較画面からも参照され�
 
 共通計算8ファイルをsrc/domain/scheduleへ集約。候補選出が共有する比較計算もpair-selection.jsとして同じ層へ移動した。コード、全テスト、LINE事前生成スクリプト、READMEの参照を更新。全50テスト、Docker内のnpm run lint、npx base44 buildが成功。計算・入出力・認証・DB操作の仕様は変更していない。画面操作と実外部接続は引き続き未確認。
 
+## 第3段階：個人機能（2026-10-24）
+
+個人デモのserver.js、service.js、demo.server.jsをfeatures/personal/serverへ移動。PersonalLayout、PersonalFooterと2つのCSSをfeatures/personal/componentsへ集約した。URL、画面内容、サーバー関数、CSSの実装は維持し、参照先のみ更新。全50テスト、Docker内のlintとBase44ビルドが成功。認証・Google連携の画面は独立した責務として今回の個人機能には移さない。

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { PersonalFooter } from "@/components/personal/PersonalFooter";
+import { PersonalFooter } from "@/features/personal/components/PersonalFooter";
 import "./personal.css";
 import "./responsive.css";
 

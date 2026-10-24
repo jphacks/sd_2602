@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { PersonalLayout } from "@/components/personal/PersonalLayout";
+import { PersonalLayout } from "@/features/personal/components/PersonalLayout";
 
 export const Route = createFileRoute("/me")({
   component: () => (

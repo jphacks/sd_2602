@@ -1,4 +1,4 @@
-import seed from "../../mock/personal.json";
+import seed from "../../../mock/personal.json";
 import { loadPersonalDemo } from "./service.js";
 
 export function readDemo() {

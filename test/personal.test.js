@@ -11,7 +11,7 @@ import { readPersonalFixture } from "../src/lib/adapters/personal-mock.js";
 import { buildSchedule } from "../src/domain/schedule/schedule.js";
 import { dateInTokyo, addDays, DAYS } from "../src/domain/schedule/dates.js";
 import { candidateMessage } from "../src/domain/schedule/message.js";
-import { loadPersonalDemo } from "../src/lib/personal/service.js";
+import { loadPersonalDemo } from "../src/features/personal/server/service.js";
 
 const seed = JSON.parse(
   readFileSync(new URL("../src/mock/personal.json", import.meta.url), "utf8"),

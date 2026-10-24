@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { loadGooglePreview } from "../src/lib/google/preview.js";
-import { loadPersonalDemo } from "../src/lib/personal/service.js";
+import { loadPersonalDemo } from "../src/features/personal/server/service.js";
 const seed = JSON.parse(
   await readFile(new URL("../src/mock/personal.json", import.meta.url)),
 );

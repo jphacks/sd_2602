@@ -1,6 +1,6 @@
-import { readPersonalFixture } from "../adapters/personal-mock.js";
-import { buildSchedule } from "../../domain/schedule/schedule.js";
-import { dateInTokyo, TIMEZONE } from "../../domain/schedule/dates.js";
+import { readPersonalFixture } from "../../../lib/adapters/personal-mock.js";
+import { buildSchedule } from "../../../domain/schedule/schedule.js";
+import { dateInTokyo, TIMEZONE } from "../../../domain/schedule/dates.js";
 
 export function loadPersonalDemo({ seed, now, requestId, log }) {
   const emit = (event, extra = {}) =>
