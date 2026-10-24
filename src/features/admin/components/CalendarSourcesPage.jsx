@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatDateTime, shortId } from "@/lib/admin/format";
+import { formatDateTime, shortId } from "@/features/admin/format";
 
 export default function CalendarSourcesPage({ data }) {
   const { sources, currentRunId } = data;

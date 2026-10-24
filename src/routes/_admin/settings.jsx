@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import SettingsPage from "@/components/admin/SettingsPage";
-import { getSettingsData } from "@/lib/admin/server";
+import SettingsPage from "@/features/admin/components/SettingsPage";
+import { getSettingsData } from "@/features/admin/server";
 
 export const Route = createFileRoute("/_admin/settings")({
   loader: () => getSettingsData(),

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import AdjustmentsPage from "@/components/admin/AdjustmentsPage";
-import { listAdjustments } from "@/lib/admin/server";
+import AdjustmentsPage from "@/features/admin/components/AdjustmentsPage";
+import { listAdjustments } from "@/features/admin/server";
 
 export const Route = createFileRoute("/_admin/adjustments")({
   loader: () => listAdjustments(),

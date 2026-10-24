@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AuthGateError, requireSignedIn } from "@/components/auth/AuthGate";
-import AdminNav from "@/components/admin/AdminNav";
+import AdminNav from "@/features/admin/components/AdminNav";
 
 export const Route = createFileRoute("/_admin")({
   ssr: false,

@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateSettings } from "@/lib/admin/server";
+import { updateSettings } from "@/features/admin/server";
 
 const initialForm = (profile) => ({
   timezone: profile?.timezone ?? "Asia/Tokyo",

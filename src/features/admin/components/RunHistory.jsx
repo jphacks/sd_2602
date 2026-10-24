@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime, shortId } from "@/lib/admin/format";
+import { formatDateTime, shortId } from "@/features/admin/format";
 
 const badgeFor = (state) => {
   if (state === "succeeded") return <Badge>成功</Badge>;

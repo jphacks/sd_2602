@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import DashboardPage from "@/components/admin/DashboardPage";
-import { getDashboardData } from "@/lib/admin/server";
+import DashboardPage from "@/features/admin/components/DashboardPage";
+import { getDashboardData } from "@/features/admin/server";
 
 export const Route = createFileRoute("/_admin/dashboard")({
   loader: () => getDashboardData(),

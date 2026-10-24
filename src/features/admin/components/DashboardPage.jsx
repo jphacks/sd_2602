@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { shortId } from "@/lib/admin/format";
-import RunHistory from "@/components/admin/RunHistory";
+import { shortId } from "@/features/admin/format";
+import RunHistory from "@/features/admin/components/RunHistory";
 
 const states = [
   { key: "queued", label: "待機中" },

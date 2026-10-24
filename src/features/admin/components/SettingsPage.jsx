@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { shortId } from "@/lib/admin/format";
-import ProfileForm from "@/components/admin/ProfileForm";
+import { shortId } from "@/features/admin/format";
+import ProfileForm from "@/features/admin/components/ProfileForm";
 
 const connectionLabels = {
   configuration_missing: "Connector IDが未設定です。",

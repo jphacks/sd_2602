@@ -13,13 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/admin/format";
-import AdjustmentDialog from "@/components/admin/AdjustmentDialog";
+import { formatDateTime } from "@/features/admin/format";
+import AdjustmentDialog from "@/features/admin/components/AdjustmentDialog";
 import {
   createAdjustment,
   deleteAdjustment,
   updateAdjustment,
-} from "@/lib/admin/server";
+} from "@/features/admin/server";
 
 export default function AdjustmentsPage({ adjustments }) {
   const router = useRouter();

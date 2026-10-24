@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import CalendarSourcesPage from "@/components/admin/CalendarSourcesPage";
-import { getCalendarSources } from "@/lib/admin/server";
+import CalendarSourcesPage from "@/features/admin/components/CalendarSourcesPage";
+import { getCalendarSources } from "@/features/admin/server";
 
 export const Route = createFileRoute("/_admin/calendar-sources")({
   loader: () => getCalendarSources(),
