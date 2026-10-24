@@ -1,6 +1,6 @@
 import {readPersonalFixture} from "../src/lib/adapters/personal-mock.js";
 import {buildSchedule} from "../src/domain/schedule/schedule.js";
-import {shortSchedule} from "../src/lib/pair/share.js";
+import {shortSchedule} from "../src/features/pair/share.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";

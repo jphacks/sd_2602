@@ -5,7 +5,7 @@ import {
   buildShare,
   shortSchedule,
   shareMessage,
-} from "../src/lib/pair/share.js";
+} from "../src/features/pair/share.js";
 const window = { startMinute: 540, endMinute: 1320 };
 const day = (date, periods = [], allDayCount = 0) => ({
   date,

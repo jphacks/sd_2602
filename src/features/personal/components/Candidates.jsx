@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { dateLabel } from "@/domain/schedule/dates";
 import { candidateMessage } from "@/domain/schedule/message";
-import { shortSchedule } from "@/lib/pair/share";
+import { shortSchedule } from "@/features/pair/share";
 import { MessageComposer } from "@/shared/ui/schedule/MessageComposer";
 export function Candidates({ candidates, details }) {
   const [selected, setSelected] = useState([]),

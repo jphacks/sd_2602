@@ -124,3 +124,7 @@ CalendarLegend、Timeline、MessageComposerは比較画面からも参照され�
 ## 第3段階：個人機能（2026-10-24）
 
 個人デモのserver.js、service.js、demo.server.jsをfeatures/personal/serverへ移動。PersonalLayout、PersonalFooterと2つのCSSをfeatures/personal/componentsへ集約した。URL、画面内容、サーバー関数、CSSの実装は維持し、参照先のみ更新。全50テスト、Docker内のlintとBase44ビルドが成功。認証・Google連携の画面は独立した責務として今回の個人機能には移さない。
+
+## 第4段階：2人比較（2026-10-24）
+
+2人比較の画面・CSS・デモ取得・共有データ・画像生成の10ファイルをfeatures/pairへ集約。全50テスト、lint、Base44ビルドが成功。固定データ、候補選出、共有情報の限定、画像内容は変更していない。HTTP確認は引き続き未完了。

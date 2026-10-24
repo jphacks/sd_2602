@@ -4,7 +4,7 @@ import {
   OTHER_COLORS,
   level,
   monthBorder,
-} from "@/lib/pair/presentation";
+} from "@/features/pair/presentation";
 import { CalendarLegend, Weekdays } from "@/shared/ui/schedule/CalendarLegend";
 export function PairCalendar({ share, selectedDate, onSelect }) {
   const padding = new Date(share.days[0].date + "T00:00:00Z").getUTCDay();

@@ -4,7 +4,7 @@ import console from "node:console";
 import { readPersonalFixture } from "../src/lib/adapters/personal-mock.js";
 import { buildSchedule } from "../src/domain/schedule/schedule.js";
 import { dateInTokyo, dateLabel, clock } from "../src/domain/schedule/dates.js";
-import { shortSchedule } from "../src/lib/pair/share.js";
+import { shortSchedule } from "../src/features/pair/share.js";
 const now = new Date(),
   today = dateInTokyo(now);
 const seed = JSON.parse(

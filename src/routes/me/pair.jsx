@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getPairDemo } from "@/lib/pair/server";
-import { PairPage } from "@/components/pair/PairPage";
+import { getPairDemo } from "@/features/pair/server";
+import { PairPage } from "@/features/pair/components/PairPage";
 export const Route = createFileRoute("/me/pair")({
   loader: () => getPairDemo(),
   pendingComponent: () => (

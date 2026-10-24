@@ -1,4 +1,4 @@
-import { SELF_COLORS, OTHER_COLORS } from "@/lib/pair/presentation";
+import { SELF_COLORS, OTHER_COLORS } from "@/features/pair/presentation";
 export function CalendarLegend({ pair = false }) {
   return (
     <div className="calendar-legend-wrap">

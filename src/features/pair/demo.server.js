@@ -1,5 +1,5 @@
 import seed from "../../mock/personal.json";
-import { readPersonalFixture } from "../adapters/personal-mock.js";
+import { readPersonalFixture } from "../../lib/adapters/personal-mock.js";
 import { buildSchedule } from "../../domain/schedule/schedule.js";
 import { dateInTokyo } from "../../domain/schedule/dates.js";
 import { selectPair } from "../../domain/schedule/pair-selection.js";
