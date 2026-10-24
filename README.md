@@ -77,9 +77,9 @@ LINEでは、本人連携とグループ別共有許可を確認し、＠リス�
 
 #### ハッカソンで開発した独自機能・技術
 
-- [予定正規化](src/lib/modules/normalize.js)：予定の状態・形式・重複を扱う計算前処理。
-- [日別・時間別集計](src/lib/modules/busyness.js)：活動時間との重なりを求め、時間重複を二重加算しない集計。
-- [候補選出](src/lib/modules/recommend.js)：今日と除外日を外し、多忙度と日付で順位付け。
+- [予定正規化](src/domain/schedule/normalize.js)：予定の状態・形式・重複を扱う計算前処理。
+- [日別・時間別集計](src/domain/schedule/busyness.js)：活動時間との重なりを求め、時間重複を二重加算しない集計。
+- [候補選出](src/domain/schedule/recommend.js)：今日と除外日を外し、多忙度と日付で順位付け。
 - 固定版共有と処理状態の分離は[全体設計](architecture.md)に整理しています。未実装部分を完成機能として記載しません。
 
 

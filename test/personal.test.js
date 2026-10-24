@@ -4,13 +4,13 @@ import { readFileSync } from "node:fs";
 import {
   calculateDaily,
   calculateHourly,
-} from "../src/lib/modules/busyness.js";
-import { normalize } from "../src/lib/modules/normalize.js";
-import { select } from "../src/lib/modules/recommend.js";
+} from "../src/domain/schedule/busyness.js";
+import { normalize } from "../src/domain/schedule/normalize.js";
+import { select } from "../src/domain/schedule/recommend.js";
 import { readPersonalFixture } from "../src/lib/adapters/personal-mock.js";
-import { buildSchedule } from "../src/lib/personal/schedule.js";
-import { dateInTokyo, addDays, DAYS } from "../src/lib/personal/dates.js";
-import { candidateMessage } from "../src/lib/personal/message.js";
+import { buildSchedule } from "../src/domain/schedule/schedule.js";
+import { dateInTokyo, addDays, DAYS } from "../src/domain/schedule/dates.js";
+import { candidateMessage } from "../src/domain/schedule/message.js";
 import { loadPersonalDemo } from "../src/lib/personal/service.js";
 
 const seed = JSON.parse(

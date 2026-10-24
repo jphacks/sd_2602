@@ -1,9 +1,9 @@
 import { connectorConfig } from "../account/service.js";
 import { fetchEvents, CalendarError } from "./events.js";
 import { toCalendarEvents } from "./adapter.js";
-import { buildSchedule } from "../personal/schedule.js";
-import { addDays, dateInTokyo, DAYS, TIMEZONE } from "../personal/dates.js";
-import { DEFAULT_ACTIVITY_WINDOW } from "../modules/busyness.js";
+import { buildSchedule } from "../../domain/schedule/schedule.js";
+import { addDays, dateInTokyo, DAYS, TIMEZONE } from "../../domain/schedule/dates.js";
+import { DEFAULT_ACTIVITY_WINDOW } from "../../domain/schedule/busyness.js";
 
 export async function loadGoogleSchedule({
   connectorId,

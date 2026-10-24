@@ -1,4 +1,4 @@
-import { clock } from "@/lib/personal/dates";
+import { clock } from "@/domain/schedule/dates";
 // Display hours are independent of the approved scoring/activity window.
 export function Timeline({ people, window }) {
   return (

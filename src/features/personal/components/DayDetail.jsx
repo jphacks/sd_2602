@@ -1,4 +1,4 @@
-import { dateLabel } from "@/lib/personal/dates";
+import { dateLabel } from "@/domain/schedule/dates";
 import { Timeline } from "@/shared/ui/schedule/Timeline";
 export function DayDetail({ day, today, window, excluded, onExclude }) {
   const content = (

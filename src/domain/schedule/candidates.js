@@ -1,4 +1,4 @@
-import { selectPair } from "../pair/select.js";
+import { selectPair } from "./pair-selection.js";
 // Solo and pair use the same union/gap ranking; never expose the numeric score.
 export function recommendForDetails(
   daily,

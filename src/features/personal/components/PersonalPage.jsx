@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { recommendForDetails } from "@/lib/personal/candidates";
+import { recommendForDetails } from "@/domain/schedule/candidates";
 import { MonthMap } from "./MonthMap";
 import { DayDetail } from "./DayDetail";
 import { Candidates } from "./Candidates";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { dateLabel } from "@/lib/personal/dates";
+import { dateLabel } from "@/domain/schedule/dates";
 import { Timeline } from "@/shared/ui/schedule/Timeline";
 export function PairDetail({ day, candidate, window }) {
   const [timeline, setTimeline] = useState(false);

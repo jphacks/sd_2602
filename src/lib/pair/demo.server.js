@@ -1,8 +1,8 @@
 import seed from "../../mock/personal.json";
 import { readPersonalFixture } from "../adapters/personal-mock.js";
-import { buildSchedule } from "../personal/schedule.js";
-import { dateInTokyo } from "../personal/dates.js";
-import { selectPair } from "./select.js";
+import { buildSchedule } from "../../domain/schedule/schedule.js";
+import { dateInTokyo } from "../../domain/schedule/dates.js";
+import { selectPair } from "../../domain/schedule/pair-selection.js";
 import { buildShare } from "./share.js";
 
 export function readPairDemo({

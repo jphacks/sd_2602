@@ -5,7 +5,7 @@ import {
   connectionStatus,
 } from "../src/lib/account/service.js";
 import { selectShare } from "../src/lib/pair/share.js";
-import { recommendForDetails } from "../src/lib/personal/candidates.js";
+import { recommendForDetails } from "../src/domain/schedule/candidates.js";
 import { checkPage } from "../src/lib/site/check.js";
 test("missing/wrong Google client ID never invokes a connector", async () => {
   for (const id of [undefined, "123.apps.googleusercontent.com", "../x"]) {

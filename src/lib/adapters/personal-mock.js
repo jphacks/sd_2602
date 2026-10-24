@@ -1,4 +1,4 @@
-import { addDays, DAYS, TIMEZONE } from "../personal/dates.js";
+import { addDays, DAYS, TIMEZONE } from "../../domain/schedule/dates.js";
 
 // Fixed relative input, anchored by the caller's clock. No Google/API/DB access.
 export function readPersonalFixture(seed, today) {

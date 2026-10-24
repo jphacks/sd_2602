@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { shareMessage, shortSchedule, selectShare } from "@/lib/pair/share";
-import { dateLabel } from "@/lib/personal/dates";
+import { dateLabel } from "@/domain/schedule/dates";
 import { updatedLabel } from "@/lib/pair/presentation";
 import { MessageComposer } from "@/shared/ui/schedule/MessageComposer";
 import { PairCalendar } from "./PairCalendar";

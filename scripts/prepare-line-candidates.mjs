@@ -2,8 +2,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { URL } from "node:url";
 import console from "node:console";
 import { readPersonalFixture } from "../src/lib/adapters/personal-mock.js";
-import { buildSchedule } from "../src/lib/personal/schedule.js";
-import { dateInTokyo, dateLabel, clock } from "../src/lib/personal/dates.js";
+import { buildSchedule } from "../src/domain/schedule/schedule.js";
+import { dateInTokyo, dateLabel, clock } from "../src/domain/schedule/dates.js";
 import { shortSchedule } from "../src/lib/pair/share.js";
 const now = new Date(),
   today = dateInTokyo(now);

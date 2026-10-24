@@ -1,4 +1,4 @@
-import { clock, dateLabel } from "../personal/dates.js";
+import { clock, dateLabel } from "../../domain/schedule/dates.js";
 // This is the only DTO exposed by the pair fixture endpoint.
 export function buildShare(
   self,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { calendarPng } from "@/lib/pair/image";
 import { shortSchedule } from "@/lib/pair/share";
-import { dateLabel } from "@/lib/personal/dates";
+import { dateLabel } from "@/domain/schedule/dates";
 export function ShareCard({ share, selectionKey = share.version }) {
   const [image, setImage] = useState(null),
     [error, setError] = useState("");

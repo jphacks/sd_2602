@@ -1,9 +1,9 @@
-import { normalize } from "../modules/normalize.js";
+import { normalize } from "./normalize.js";
 import {
   calculateDaily,
   calculateHourly,
   isBusy,
-} from "../modules/busyness.js";
+} from "./busyness.js";
 import { recommendForDetails } from "./candidates.js";
 import { OFFSET_MINUTES } from "./dates.js";
 

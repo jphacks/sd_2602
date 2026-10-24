@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { selectPair, freeTime } from "../src/lib/pair/select.js";
+import { selectPair, freeTime } from "../src/domain/schedule/pair-selection.js";
 import {
   buildShare,
   shortSchedule,

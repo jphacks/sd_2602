@@ -1,4 +1,4 @@
-import { dateLabel } from "@/lib/personal/dates";
+import { dateLabel } from "@/domain/schedule/dates";
 
 import { CalendarLegend, Weekdays } from "@/shared/ui/schedule/CalendarLegend";
 const monthColors = [

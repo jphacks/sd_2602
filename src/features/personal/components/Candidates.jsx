@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { dateLabel } from "@/lib/personal/dates";
-import { candidateMessage } from "@/lib/personal/message";
+import { dateLabel } from "@/domain/schedule/dates";
+import { candidateMessage } from "@/domain/schedule/message";
 import { shortSchedule } from "@/lib/pair/share";
 import { MessageComposer } from "@/shared/ui/schedule/MessageComposer";
 export function Candidates({ candidates, details }) {
