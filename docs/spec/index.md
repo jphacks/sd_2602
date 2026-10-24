@@ -21,6 +21,7 @@
 | [LINE仕様](line.md) | 更新時の画像保存、＠リスケでカード自動生成、もっと見るの固定共有ページ |
 | [開発計画](../dev/plan.md) | 実装順序、合格条件、レビュー・公開手順 |
 | [ADR](adr/2026-10-15-schedule-recommendation.md) | 方針の理由と変更経緯 |
+| [src整理ADR](adr/2026-10-24-src-organization.md) | 機能別配置・段階移行・検証結果と残項目 |
 | [用語集](adr/glossary.md) | 芝、版、DTO、queued等の定義 |
 | [ローカル検証記録](../archive/local-line/storage.md) | 独立Botの保存なし検証。本体の実装済み要件ではない |
 

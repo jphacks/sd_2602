@@ -384,10 +384,10 @@ classDiagram
   Recommendation --> CalculationCore
 ~~~
 
-- 画面：src/routes/me/、部品：src/components/personal/。
-- 認証とHTTP境界：src/lib/personal/server.js。サーバー専用の時計・JSON読込：demo.server.js。
+- 画面：src/routes/me/、部品：src/features/personal/components/。
+- 認証とHTTP境界：src/features/personal/server/server.js。サーバー専用の時計・JSON読込：demo.server.js。
 - 取得口：src/lib/adapters/personal-mock.js、固定相対予定：src/mock/personal.json。
-- 純粋な組立：src/lib/personal/（service / schedule / candidates / dates / message）。
+- 取得と組立の調整：src/features/personal/server/service.js。共通計算：src/domain/schedule/（schedule / candidates / dates / message等）。
 - Google OAuth・コールバック・任意URL取得の受付は作らない。将来は取得口と連携工程を置換する。
 
 ## 9. 2人比較の固定テスト実装（2026-10-18）

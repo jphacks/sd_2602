@@ -119,6 +119,7 @@ sd_2602/
 
 | 目的 | 入口 |
 | --- | --- |
+| srcの現在の配置と読み方 | [src構成案内](src/README.md) |
 | 起動・テスト・LINEの編集とデプロイ | [開発手順](docs/dev/README.md) |
 | 機能・画面・保存・権限を確認 | [仕様一覧](docs/spec/index.md) |
 | 全体の構造を確認 | [architecture.md](architecture.md) |
