@@ -9,7 +9,7 @@ import {
   pendingCalendar,
   clearCalendarFlow,
 } from "@/lib/account/flow";
-import { PersonalPage } from "./PersonalPage";
+import { PersonalPage } from "@/features/personal/components/PersonalPage";
 
 const labels = {
   configuration_missing: "Base44のConnector IDが未設定です。",

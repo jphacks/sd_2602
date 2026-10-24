@@ -1,5 +1,5 @@
 import { dateLabel } from "@/lib/personal/dates";
-import { Timeline } from "./Timeline";
+import { Timeline } from "@/shared/ui/schedule/Timeline";
 export function DayDetail({ day, today, window, excluded, onExclude }) {
   const content = (
     <>

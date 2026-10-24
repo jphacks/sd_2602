@@ -84,3 +84,35 @@
 ## 問題が起きた場合
 
 新たな失敗が出た単位で停止し、原因を解消するか、その単位の変更だけを取り消す。未コミットの他の作業を破棄する操作、DBやボリュームの削除、再デプロイを復旧の既定手順にしない。復旧後に変更前の状態へ戻ったことを確認し、結果を記録する。
+
+## 第1段階の実施記録（2026-10-24）
+
+- 方針文書の事前コミット：e9da252。
+- 対象：個人カレンダー表示の4部品と、個人・比較で共有する3部品。
+- 作業前の変更：ADRと本チェックリストの2ファイルのみ。事前コミット後に整理を開始。
+- 確認環境：既存のsd_2602-dev-1開発コンテナ。変更前の全テストはホストNode.jsでも成功。
+- 処理・URL・認証・DB・依存パッケージ・CSSは変更せず、ファイル移動とimport先の更新だけを実施。
+- 計算層、認証、Google連携、DB、その他の画面の分類は後続段階。未使用候補の削除は未実施。
+
+| 旧配置：src/components/personal/ | 新配置 |
+| --- | --- |
+| PersonalPage.jsx、MonthMap.jsx、DayDetail.jsx、Candidates.jsx | src/features/personal/components/ |
+| Timeline.jsx、CalendarLegend.jsx、MessageComposer.jsx | src/shared/ui/schedule/ |
+
+CalendarLegend、Timeline、MessageComposerは比較画面からも参照されるため、個人機能の内部へ閉じ込めず共通配置とした。AccountPageとPreviewPage、比較画面、個人ページのrouteのimportを更新した。
+
+| 検査 | 変更前 | 変更後 | 証拠・制限 |
+| --- | --- | --- | --- |
+| npm run lint | 成功 | 成功 | 既存コンテナで実行 |
+| node --test test/*.test.js | 50件成功 | 50件成功 | 外部通信はテスト用の模擬処理 |
+| npx base44 build | 成功 | 成功 | ローカルビルドのみ。公開なし |
+| 実装の同一性 | 基準e9da252 | 成功 | 移動した7部品をgit showの内容と照合。import変更を除いて同一 |
+| 旧import参照 | 調査済み | 対象7部品の旧配置参照なし | src、test、scripts、docsを検索 |
+| git diff --check | 対象外 | 成功 | 空白エラーなし |
+| HTTP配信 | 未確認 | 未完了 | 5173番はREQUEST_FAILED。一時5174番も起動完了を確認できずREQUEST_FAILED |
+| ブラウザ操作 | 未確認 | 未確認 | 日付選択・候補表示・PNG操作は未検証 |
+| 実認証・Google・DB・LINE | 未実施 | 対象外 | 処理を変更せず、実データ操作・送信は行わない |
+
+一時起動のログにはBase44接続先未設定の警告と依存パッケージのbundling表示があった。接続先未設定をHTTP失敗の確定原因とは扱わない。今回起動した確認用サーバーとその子プロセスのみを停止し、既存コンテナ・サーバー・ボリュームを削除していない。
+
+本記録はブラウザ操作や本番動作の合格を意味しない。次の段階の前に、通常のBase44開発起動手順で個人・比較画面の配信と操作を確認する。

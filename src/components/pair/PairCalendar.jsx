@@ -5,7 +5,7 @@ import {
   level,
   monthBorder,
 } from "@/lib/pair/presentation";
-import { CalendarLegend, Weekdays } from "@/components/personal/CalendarLegend";
+import { CalendarLegend, Weekdays } from "@/shared/ui/schedule/CalendarLegend";
 export function PairCalendar({ share, selectedDate, onSelect }) {
   const padding = new Date(share.days[0].date + "T00:00:00Z").getUTCDay();
   const candidates = new Set(share.candidates.map((c) => c.date));

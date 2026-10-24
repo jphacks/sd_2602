@@ -3,7 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { shareMessage, shortSchedule, selectShare } from "@/lib/pair/share";
 import { dateLabel } from "@/lib/personal/dates";
 import { updatedLabel } from "@/lib/pair/presentation";
-import { MessageComposer } from "@/components/personal/MessageComposer";
+import { MessageComposer } from "@/shared/ui/schedule/MessageComposer";
 import { PairCalendar } from "./PairCalendar";
 import { PairDetail } from "./PairDetail";
 import { ShareCard } from "./ShareCard";

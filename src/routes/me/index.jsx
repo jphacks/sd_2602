@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PersonalPage } from "@/components/personal/PersonalPage";
+import { PersonalPage } from "@/features/personal/components/PersonalPage";
 import { getPersonalDemo } from "@/lib/personal/server";
 
 export const Route = createFileRoute("/me/")({
