@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { CalendarReturn } from "@/components/personal/CalendarReturn";
+import { CalendarReturn } from "@/features/account/components/CalendarReturn";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [{ title: "リスケRisuke" }] }),

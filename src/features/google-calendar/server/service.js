@@ -1,4 +1,4 @@
-import { connectorConfig } from "../../../lib/account/service.js";
+import { connectorConfig } from "../../account/service.js";
 import { fetchEvents, CalendarError } from "./events.js";
 import { toCalendarEvents } from "./adapter.js";
 import { buildSchedule } from "../../../domain/schedule/schedule.js";

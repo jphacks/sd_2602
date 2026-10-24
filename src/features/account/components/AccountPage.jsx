@@ -3,12 +3,12 @@ import { useRouter } from "@tanstack/react-router";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useServerFn } from "@tanstack/react-start";
-import { readGoogleSchedule } from "@/lib/account/server";
+import { readGoogleSchedule } from "@/features/account/server";
 import {
   startCalendarConnection,
   pendingCalendar,
   clearCalendarFlow,
-} from "@/lib/account/flow";
+} from "@/features/account/flow";
 import { PersonalPage } from "@/features/personal/components/PersonalPage";
 
 const labels = {

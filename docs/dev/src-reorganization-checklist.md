@@ -132,3 +132,7 @@ CalendarLegend、Timeline、MessageComposerは比較画面からも参照され�
 ## 第5段階：Google Calendar（2026-10-24）
 
 取得・変換・固定プレビューの5ファイルをfeatures/google-calendar/serverへ、PreviewPageを同機能のcomponentsへ移動した。全50テスト、lint、Base44ビルドが成功。OAuth設定、取得条件、失敗時の扱い、保存有無は変更せず、実Google接続は未検証。
+
+## 第6段階：アカウント連携（2026-10-24）
+
+連携状態・開始フロー・サーバー関数と3画面をfeatures/accountへ集約。全50テストとlintが成功。認証ゲート、本人確認、トークン処理、DB保存の有無は維持。個人・比較のHTTP確認は初回準備後に両方200・EXPECTED_APP_SERVEDとなった。ブラウザ操作や実認証の合格とは区別する。

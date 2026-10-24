@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   connectorConfig,
   connectionStatus,
-} from "../src/lib/account/service.js";
+} from "../src/features/account/service.js";
 import { selectShare } from "../src/features/pair/share.js";
 import { recommendForDetails } from "../src/domain/schedule/candidates.js";
 import { checkPage } from "../src/lib/site/check.js";

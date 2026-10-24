@@ -5,7 +5,7 @@ import {
   pendingCalendar,
   clearCalendarFlow,
   startCalendarConnection,
-} from "../src/lib/account/flow.js";
+} from "../src/features/account/flow.js";
 function storage() {
   const values = new Map();
   return {

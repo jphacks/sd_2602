@@ -2,7 +2,7 @@ import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth-middleware";
-import { connectionStatus } from "@/lib/account/service";
+import { connectionStatus } from "@/features/account/service";
 
 const privateResponse = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
