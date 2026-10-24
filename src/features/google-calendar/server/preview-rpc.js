@@ -13,7 +13,7 @@ export const getGooglePreview = createServerFn({ method: "GET" })
   )
   .handler(async ({ data }) => {
     const { loadGooglePreview } = await import("./preview.js");
-    const { default: seed } = await import("../../mock/personal.json");
+    const { default: seed } = await import("../../../mock/personal.json");
     return loadGooglePreview({
       seed,
       scenario: data.scenario,

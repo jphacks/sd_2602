@@ -34,7 +34,7 @@ export const readGoogleSchedule = createServerFn({ method: "POST" })
   .middleware([privateResponse, requireUser])
   .handler(async ({ context }) => {
     const { secrets } = await import("base44:runtime");
-    const { loadGoogleSchedule } = await import("../google/service.js");
+    const { loadGoogleSchedule } = await import("../../features/google-calendar/server/service.js");
     try {
       return await loadGoogleSchedule({
         connectorId: await secrets.get("GOOGLE_CALENDAR_CONNECTOR_ID"),

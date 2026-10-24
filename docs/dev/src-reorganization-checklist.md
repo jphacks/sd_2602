@@ -128,3 +128,7 @@ CalendarLegend、Timeline、MessageComposerは比較画面からも参照され�
 ## 第4段階：2人比較（2026-10-24）
 
 2人比較の画面・CSS・デモ取得・共有データ・画像生成の10ファイルをfeatures/pairへ集約。全50テスト、lint、Base44ビルドが成功。固定データ、候補選出、共有情報の限定、画像内容は変更していない。HTTP確認は引き続き未完了。
+
+## 第5段階：Google Calendar（2026-10-24）
+
+取得・変換・固定プレビューの5ファイルをfeatures/google-calendar/serverへ、PreviewPageを同機能のcomponentsへ移動した。全50テスト、lint、Base44ビルドが成功。OAuth設定、取得条件、失敗時の扱い、保存有無は変更せず、実Google接続は未検証。

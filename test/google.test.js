@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { fetchEvents } from "../src/lib/google/events.js";
-import { toCalendarEvents } from "../src/lib/google/adapter.js";
-import { loadGoogleSchedule } from "../src/lib/google/service.js";
+import { fetchEvents } from "../src/features/google-calendar/server/events.js";
+import { toCalendarEvents } from "../src/features/google-calendar/server/adapter.js";
+import { loadGoogleSchedule } from "../src/features/google-calendar/server/service.js";
 const range = { startDate: "2026-10-18", endDateExclusive: "2026-11-18" };
 const now = new Date("2026-10-18T03:00:00Z");
 const timed = (id, extra = {}) => ({

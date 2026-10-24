@@ -1,6 +1,6 @@
 import { loadGoogleSchedule } from "./service.js";
-import { readPersonalFixture } from "../adapters/personal-mock.js";
-import { dateInTokyo } from "../../domain/schedule/dates.js";
+import { readPersonalFixture } from "../../../lib/adapters/personal-mock.js";
+import { dateInTokyo } from "../../../domain/schedule/dates.js";
 
 // Fixed fixture only. This module has no real connector, secret, fetch or DB call.
 export async function loadGooglePreview({

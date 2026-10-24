@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { getGooglePreview } from "@/lib/google/preview-rpc";
+import { getGooglePreview } from "@/features/google-calendar/server/preview-rpc";
 import { PersonalPage } from "@/features/personal/components/PersonalPage";
 const choices = [
   ["success", "予定あり"],

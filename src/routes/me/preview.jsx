@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getGooglePreview } from "@/lib/google/preview-rpc";
-import { PreviewPage } from "@/components/personal/PreviewPage";
+import { getGooglePreview } from "@/features/google-calendar/server/preview-rpc";
+import { PreviewPage } from "@/features/google-calendar/components/PreviewPage";
 export const Route = createFileRoute("/me/preview")({
   loader: () => getGooglePreview({ data: { scenario: "success" } }),
   pendingComponent: () => <p role="status">固定データを読み込んでいます…</p>,
